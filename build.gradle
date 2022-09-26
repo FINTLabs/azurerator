@@ -22,6 +22,19 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation 'com.azure.resourcemanager:azure-resourcemanager-storage:2.18.0'
+    implementation 'com.azure:azure-identity:1.6.0'
+    //implementation 'com.azure:azure-storage-blob:12.19.1'
+
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+
+    //implementation "io.javaoperatorsdk:operator-framework:3.1.1"
+    annotationProcessor "io.javaoperatorsdk:operator-framework:3.2.2"
+    implementation "io.javaoperatorsdk:operator-framework-spring-boot-starter:3.2.0"
+    annotationProcessor 'io.fabric8:crd-generator-apt:6.1.1'
+
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     annotationProcessor 'org.projectlombok:lombok'
