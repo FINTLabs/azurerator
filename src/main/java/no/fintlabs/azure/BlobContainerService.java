@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 
 @Slf4j
-//@Service
+@Service
 public class BlobContainerService {
 
     @Value("${fint.azure.storage.resource-group-name:rg-storage}")

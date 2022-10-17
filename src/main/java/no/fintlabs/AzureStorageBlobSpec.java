@@ -5,8 +5,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 public class AzureStorageBlobSpec {
-    private String name;
 }

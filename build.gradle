@@ -29,7 +29,7 @@ dependencies {
 
 
     //implementation "io.javaoperatorsdk:operator-framework:3.1.1"
-    annotationProcessor "io.javaoperatorsdk:operator-framework:3.2.2"
+    annotationProcessor "io.javaoperatorsdk:operator-framework:3.2.0"
     implementation "io.javaoperatorsdk:operator-framework-spring-boot-starter:3.2.0"
     annotationProcessor 'io.fabric8:crd-generator-apt:6.1.1'
 

@@ -1,8 +1,10 @@
 package no.fintlabs;
 
-import com.azure.resourcemanager.storage.fluent.models.StorageAccountInner;
 import io.javaoperatorsdk.operator.api.ObservedGenerationAware;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -11,10 +13,8 @@ import lombok.*;
 @AllArgsConstructor
 public
 class AzureStorageBlobStatus implements ObservedGenerationAware {
-    private StorageAccountInner storageAccount;
-    private String blobContainerName;
+    private List<String> dependentResourceStatus = new ArrayList<>();
     private String errorMessage;
-
     private Long observedGeneration;
 
 
