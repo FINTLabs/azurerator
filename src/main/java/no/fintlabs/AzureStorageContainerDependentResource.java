@@ -8,7 +8,6 @@ import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
 import io.javaoperatorsdk.operator.processing.dependent.Creator;
-import io.javaoperatorsdk.operator.processing.dependent.external.AbstractSimpleDependentResource;
 import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureBlobContainer;
@@ -37,13 +36,15 @@ public class AzureStorageContainerDependentResource
     private final StorageManager storageManager;
 
     public AzureStorageContainerDependentResource(StorageManager storageManager, AzureStorageBlobWorkflow workflow) {
-        super(AzureBlobContainer.class, Duration.ofDays(1).toMillis());
+        super(AzureBlobContainer.class, Duration.ofMinutes(1).toMillis());
         this.storageManager = storageManager;
         workflow.addDependentResource(this);
     }
 
     @Override
     protected AzureBlobContainer desired(AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
+        log.info("Creating desired storage account for {}", primary.getMetadata().getName());
+
         return AzureBlobContainer.builder()
                 .blobContainerName(RandomStringUtils.randomAlphabetic(6))
                 .resourceGroup(resourceGroup)
@@ -62,7 +63,7 @@ public class AzureStorageContainerDependentResource
 
     @Override
     public AzureBlobContainer create(AzureBlobContainer desired, AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
-        log.info("Creating storage account...");
+        log.info("Creating storage account for {}", primary.getMetadata().getName());
         StorageAccount storageAccount = storageManager.storageAccounts()
                 .define(sanitizeStorageAccountName(primary.getMetadata().getName()))
                 .withRegion(Region.NORWAY_EAST)
@@ -71,7 +72,7 @@ public class AzureStorageContainerDependentResource
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
                 .withBlobStorageAccountKind()
                 .withAccessTier(AccessTier.HOT)
-                //.withAccessFromAzureServices()
+                .withAccessFromAzureServices()
                 .disableBlobPublicAccess()
                 .create();
 
@@ -96,7 +97,7 @@ public class AzureStorageContainerDependentResource
 
     @Override
     public Set<AzureBlobContainer> fetchResources(AzureStorageBlobCrd primaryResource) {
-        log.info("Fetching Azure blob container...");
+        log.info("Fetching Azure blob container for {}...", primaryResource.getMetadata().getName());
         CheckNameAvailabilityResult checkNameAvailabilityResult = storageManager.storageAccounts().checkNameAvailability(sanitizeStorageAccountName(primaryResource.getMetadata().getName()));
         if (checkNameAvailabilityResult.isAvailable()) {
             return Collections.emptySet();

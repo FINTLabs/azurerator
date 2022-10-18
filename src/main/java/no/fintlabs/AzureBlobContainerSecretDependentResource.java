@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureBlobContainer;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -24,7 +22,7 @@ public class AzureBlobContainerSecretDependentResource
     public AzureBlobContainerSecretDependentResource(AzureStorageBlobWorkflow workflow, AzureStorageContainerDependentResource azureStorageContainerDependentResource, KubernetesClient kubernetesClient) {
 
         super(Secret.class);
-       workflow.addDependentResource(this).dependsOn(azureStorageContainerDependentResource);
+        workflow.addDependentResource(this).dependsOn(azureStorageContainerDependentResource);
         client = kubernetesClient;
     }
 
@@ -32,7 +30,7 @@ public class AzureBlobContainerSecretDependentResource
     @Override
     protected Secret desired(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context) {
 
-        log.info("Creating desired secret...");
+        log.info("Creating desired secret for {}", resource.getMetadata().getName());
 
         Optional<AzureBlobContainer> blobContainer = context.getSecondaryResource(AzureBlobContainer.class);
         AzureBlobContainer azureBlobContainer = blobContainer.orElseThrow();
@@ -40,13 +38,13 @@ public class AzureBlobContainerSecretDependentResource
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
         labels.put("app.kubernetes.io/managed-by", "flaiserator");
-       return new SecretBuilder()
+        return new SecretBuilder()
                 .withNewMetadata()
                 .withName(resource.getMetadata().getName())
                 .withNamespace(resource.getMetadata().getNamespace())
                 .withLabels(labels)
                 .endMetadata()
-                .withStringData(new HashMap<String, String>() {{
+                .withStringData(new HashMap<>() {{
                     put("fint.azure.storage.container-blob.connection-string", azureBlobContainer.getConnectionString());
                     put("fint.azure.storage.container-blob.container-name", azureBlobContainer.getBlobContainerName());
                 }})

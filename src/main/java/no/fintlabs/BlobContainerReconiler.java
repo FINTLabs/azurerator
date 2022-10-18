@@ -2,7 +2,6 @@ package no.fintlabs;
 
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
-import io.javaoperatorsdk.operator.processing.dependent.AbstractDependentResource;
 import io.javaoperatorsdk.operator.processing.dependent.workflow.Workflow;
 import io.javaoperatorsdk.operator.processing.dependent.workflow.WorkflowReconcileResult;
 import io.javaoperatorsdk.operator.processing.event.source.EventSource;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -49,11 +47,12 @@ public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
 
         List<String> results = new ArrayList<>();
         reconcile.getReconcileResults().forEach((dependentResource, reconcileResult) -> results.add(dependentResource.toString() + " -> " + reconcileResult.getOperation().name()));
-        resource.setStatus(AzureStorageBlobStatus.builder()
-                        .dependentResourceStatus(results)
+        resource.setStatus(AzureStorageBlobStatus
+                .builder()
+                .dependentResourceStatus(results)
                 .build()
         );
-        return UpdateControl.updateStatus(resource);
+        return UpdateControl.updateResource(resource);
     }
 
 
