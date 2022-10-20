@@ -22,17 +22,9 @@ public class AzureConfiguration {
     TokenCredential credential = new DefaultAzureCredentialBuilder()
             .authorityHost(profile.getEnvironment().getActiveDirectoryEndpoint())
             .build();
-    StorageManager manager = StorageManager
-            .authenticate(credential, profile);
 
-//        AzureResourceManager azureResourceManager = AzureResourceManager
-//                .configure()
-//                .withLogLevel(HttpLogDetailLevel.BASIC)
-//                .authenticate(credential, profile)
-//                .withDefaultSubscription();
-
-
-        return manager;
+        return StorageManager
+                .authenticate(credential, profile);
 
     }
 }

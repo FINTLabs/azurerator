@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.azure.storage.blob;
 
 import io.javaoperatorsdk.operator.api.ObservedGenerationAware;
 import lombok.*;

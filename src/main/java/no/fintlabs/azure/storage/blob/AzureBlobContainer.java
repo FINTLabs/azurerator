@@ -1,4 +1,4 @@
-package no.fintlabs.azure;
+package no.fintlabs.azure.storage.blob;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;

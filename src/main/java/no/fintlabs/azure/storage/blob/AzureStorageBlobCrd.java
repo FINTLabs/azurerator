@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.azure.storage.blob;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;

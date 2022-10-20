@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.azure.storage.blob;
 
 import io.javaoperatorsdk.operator.api.reconciler.*;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
@@ -6,6 +6,7 @@ import io.javaoperatorsdk.operator.processing.dependent.workflow.Workflow;
 import io.javaoperatorsdk.operator.processing.dependent.workflow.WorkflowReconcileResult;
 import io.javaoperatorsdk.operator.processing.event.source.EventSource;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.CrdValidator;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

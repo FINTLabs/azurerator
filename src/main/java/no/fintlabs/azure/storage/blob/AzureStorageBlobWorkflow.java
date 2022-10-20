@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.azure.storage.blob;
 
 import io.javaoperatorsdk.operator.processing.dependent.workflow.builder.WorkflowBuilder;
 import org.springframework.stereotype.Component;

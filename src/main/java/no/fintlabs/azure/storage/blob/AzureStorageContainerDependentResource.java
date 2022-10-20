@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.azure.storage.blob;
 
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.storage.StorageManager;
@@ -10,7 +10,6 @@ import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
 import io.javaoperatorsdk.operator.processing.dependent.Creator;
 import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.azure.AzureBlobContainer;
 import no.fintlabs.azure.StorageAccountUtilities;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,15 +34,19 @@ public class AzureStorageContainerDependentResource
     private String resourceGroup;
     private final StorageManager storageManager;
 
-    public AzureStorageContainerDependentResource(StorageManager storageManager, AzureStorageBlobWorkflow workflow) {
-        super(AzureBlobContainer.class, Duration.ofMinutes(1).toMillis());
+    private final BlobContainerService blobContainerService;
+
+    public AzureStorageContainerDependentResource(StorageManager storageManager, AzureStorageBlobWorkflow workflow, BlobContainerService blobContainerService) {
+        super(AzureBlobContainer.class, Duration.ofMinutes(10).toMillis());
         this.storageManager = storageManager;
+        this.blobContainerService = blobContainerService;
         workflow.addDependentResource(this);
     }
 
     @Override
     protected AzureBlobContainer desired(AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
-        log.info("Creating desired storage account for {}", primary.getMetadata().getName());
+        log.info("Desired storage account for {}:", primary.getMetadata().getName());
+        log.info("\t{}", primary);
 
         return AzureBlobContainer.builder()
                 .blobContainerName(RandomStringUtils.randomAlphabetic(6))
@@ -55,44 +58,14 @@ public class AzureStorageContainerDependentResource
     @Override
     public void delete(AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
         context.getSecondaryResource(AzureBlobContainer.class)
-                .ifPresent(azureBlobContainer -> storageManager
-                        .storageAccounts()
-                        .deleteByResourceGroup(resourceGroup, azureBlobContainer.getStorageAccountName())
-                );
+                .ifPresent(blobContainerService::delete);
     }
 
     @Override
     public AzureBlobContainer create(AzureBlobContainer desired, AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
-        log.info("Creating storage account for {}", primary.getMetadata().getName());
-        StorageAccount storageAccount = storageManager.storageAccounts()
-                .define(sanitizeStorageAccountName(primary.getMetadata().getName()))
-                .withRegion(Region.NORWAY_EAST)
-                .withExistingResourceGroup(resourceGroup)
-                .withGeneralPurposeAccountKindV2()
-                .withSku(StorageAccountSkuType.STANDARD_LRS)
-                .withBlobStorageAccountKind()
-                .withAccessTier(AccessTier.HOT)
-                .withAccessFromAzureServices()
-                .disableBlobPublicAccess()
-                .create();
 
-        log.info("Storage account created. Status is: {}", storageAccount.accountStatuses().primary().name());
-        log.info("Creating blob container...");
-        String blobContainerName = RandomStringUtils.randomAlphabetic(4).toLowerCase();
-        BlobContainer blobContainer = storageAccount
-                .manager()
-                .blobContainers().defineContainer(blobContainerName)
-                .withExistingStorageAccount(storageAccount)
-                .withPublicAccess(PublicAccess.NONE)
-                .create();
-        log.info("Blob container created: {}", blobContainer.innerModel());
+        return blobContainerService.add(primary);
 
-        return AzureBlobContainer.builder()
-                .blobContainerName(blobContainerName)
-                .resourceGroup(resourceGroup)
-                .storageAccountName(storageAccount.name())
-                .connectionString(StorageAccountUtilities.getConnectionString(storageAccount))
-                .build();
     }
 
     @Override

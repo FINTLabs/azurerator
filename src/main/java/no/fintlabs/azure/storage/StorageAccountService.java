@@ -1,34 +1,32 @@
-package no.fintlabs.azure;
+package no.fintlabs.azure.storage;
 
 import com.azure.core.management.Region;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.*;
+import com.azure.resourcemanager.storage.models.AccessTier;
+import com.azure.resourcemanager.storage.models.StorageAccount;
+import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.AzureStorageBlobCrd;
-import no.fintlabs.AzureStorageBlobStatus;
-import org.apache.commons.lang3.RandomStringUtils;
+import no.fintlabs.azure.StorageAccountUtilities;
+import no.fintlabs.azure.storage.blob.AzureBlobContainer;
+import no.fintlabs.azure.storage.blob.AzureStorageBlobCrd;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-
 @Slf4j
 @Service
-public class BlobContainerService {
+public class StorageAccountService {
 
     @Value("${fint.azure.storage.resource-group-name:rg-storage}")
     private String resourceGroup;
     private final StorageManager storageManager;
 
-    public BlobContainerService(StorageManager storageManager) {
+    public StorageAccountService(StorageManager storageManager) {
         this.storageManager = storageManager;
     }
 
-
     public StorageAccount add(AzureStorageBlobCrd crd) {
 
-
-        log.info("Creating storage account {}", StorageAccountUtilities.sanitizeStorageAccountName(crd.getMetadata().getName()));
+        log.info("Creating storage account with name: {}", StorageAccountUtilities.sanitizeStorageAccountName(crd.getMetadata().getName()));
         StorageAccount storageAccount = storageManager.storageAccounts()
                 .define(StorageAccountUtilities.sanitizeStorageAccountName(crd.getMetadata().getName()))
                 .withRegion(Region.NORWAY_EAST)
@@ -43,17 +41,13 @@ public class BlobContainerService {
 
         log.info("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
 
-        log.info("Creating blob container...");
-        BlobContainer container = storageAccount
-                .manager()
-                .blobContainers().defineContainer(RandomStringUtils.randomAlphabetic(16))
-                .withExistingStorageAccount(storageAccount)
-                .withPublicAccess(PublicAccess.NONE)
-                .create();
-
-        log.info("Blob container created");
-
         return storageAccount;
+    }
 
+    public void delete(AzureBlobContainer azureBlobContainer) {
+        log.info("Removing storage account {}", azureBlobContainer.getStorageAccountName());
+        storageManager
+                .storageAccounts()
+                .deleteByResourceGroup(resourceGroup, azureBlobContainer.getStorageAccountName());
     }
 }

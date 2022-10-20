@@ -1,13 +1,13 @@
-package no.fintlabs;
+package no.fintlabs.azure.storage.blob;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
+import io.javaoperatorsdk.operator.processing.dependent.Matcher;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.CRUDKubernetesDependentResource;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDependent;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.azure.AzureBlobContainer;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -51,5 +51,12 @@ public class AzureBlobContainerSecretDependentResource
                 .build();
 
 
+    }
+
+    // TODO: 18/10/2022 Need to improve matching
+    @Override
+    public Matcher.Result<Secret> match(Secret actual, AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
+        final var desiredSecretName = primary.getMetadata().getName();
+        return Matcher.Result.nonComputed(actual.getMetadata().getName().equals(desiredSecretName));
     }
 }
