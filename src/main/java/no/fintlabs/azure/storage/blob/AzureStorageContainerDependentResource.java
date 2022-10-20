@@ -1,9 +1,9 @@
 package no.fintlabs.azure.storage.blob;
 
-import com.azure.core.management.Region;
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.fluent.models.ListContainerItemInner;
-import com.azure.resourcemanager.storage.models.*;
+import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
+import com.azure.resourcemanager.storage.models.StorageAccount;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;

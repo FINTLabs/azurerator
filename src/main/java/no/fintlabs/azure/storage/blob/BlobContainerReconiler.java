@@ -23,16 +23,11 @@ public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
         EventSourceInitializer<AzureStorageBlobCrd> {
 
     private final AzureStorageBlobWorkflow workflow;
-    private final AzureStorageContainerDependentResource azureStorageContainerDependentResource;
     private final List<? extends EventSourceProvider<AzureStorageBlobCrd>> dependentResources;
 
-    public BlobContainerReconiler(AzureStorageBlobWorkflow workflow, /*,List<? extends CRUDKubernetesDependentResource<?, AzureStorageBlobCrd>> dependentResources*/AzureStorageContainerDependentResource azureStorageContainerDependentResource, List<? extends EventSourceProvider<AzureStorageBlobCrd>> dependentResources) {
+    public BlobContainerReconiler(AzureStorageBlobWorkflow workflow, List<? extends EventSourceProvider<AzureStorageBlobCrd>> dependentResources) {
         this.workflow = workflow;
-        //this.dependentResources = dependentResources;
-        this.azureStorageContainerDependentResource = azureStorageContainerDependentResource;
         this.dependentResources = dependentResources;
-
-        //dependentResources.forEach(workflow::addDependentResource);
     }
 
 
@@ -65,22 +60,24 @@ public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
         return ErrorStatusUpdateControl.updateStatus(resource);
     }
 
-    @Override
-    public Map<String, EventSource> prepareEventSources(EventSourceContext<AzureStorageBlobCrd> context) {
-        List<EventSource> collect = dependentResources
-                .stream()
-                .map(dr -> (dr).initEventSource(context)).toList();
-        return EventSourceInitializer
-                .nameEventSources(collect.toArray(EventSource[]::new));
-
-    }
-
 //    @Override
 //    public Map<String, EventSource> prepareEventSources(EventSourceContext<AzureStorageBlobCrd> context) {
-////        EventSource[] eventSources = dependentResources
-////                .stream()
-////                .map(crudKubernetesDependentResource -> crudKubernetesDependentResource.initEventSource(context))
-////                .toArray(EventSource[]::new);
-//        return EventSourceInitializer.nameEventSources(/*eventSources*/);
+//        List<EventSource> collect = dependentResources
+//                .stream()
+//                .map(dr -> (dr).initEventSource(context)).toList();
+//        return EventSourceInitializer
+//                .nameEventSources(
+//                        collect.toArray(EventSource[]::new)
+//                );
+//
 //    }
+
+    @Override
+    public Map<String, EventSource> prepareEventSources(EventSourceContext<AzureStorageBlobCrd> context) {
+        EventSource[] eventSources = dependentResources
+                .stream()
+                .map(crudKubernetesDependentResource -> crudKubernetesDependentResource.initEventSource(context))
+                .toArray(EventSource[]::new);
+        return EventSourceInitializer.nameEventSources(eventSources);
+    }
 }

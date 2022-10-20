@@ -30,7 +30,7 @@ public class AzureBlobContainerSecretDependentResource
     @Override
     protected Secret desired(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context) {
 
-        log.info("Creating desired secret for {}", resource.getMetadata().getName());
+        log.info("Desired secret for {}", resource.getMetadata().getName());
 
         Optional<AzureBlobContainer> blobContainer = context.getSecondaryResource(AzureBlobContainer.class);
         AzureBlobContainer azureBlobContainer = blobContainer.orElseThrow();
