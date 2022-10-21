@@ -10,4 +10,8 @@ import io.fabric8.kubernetes.model.annotation.Version;
 @Version("v1alpha1")
 @Kind("AzureBlobContainer")
 public class AzureStorageBlobCrd extends CustomResource<AzureStorageBlobSpec, AzureStorageBlobStatus> implements Namespaced {
+    @Override
+    protected AzureStorageBlobStatus initStatus() {
+        return new AzureStorageBlobStatus();
+    }
 }

@@ -1,6 +1,7 @@
 package no.fintlabs.azure.storage.blob;
 
 import io.javaoperatorsdk.operator.api.reconciler.*;
+import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
 import io.javaoperatorsdk.operator.processing.dependent.workflow.Workflow;
 import io.javaoperatorsdk.operator.processing.dependent.workflow.WorkflowReconcileResult;
@@ -19,25 +20,31 @@ import java.util.Map;
         generationAwareEventProcessing = false
 )
 public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
+        Cleaner<AzureStorageBlobCrd>,
         ErrorStatusHandler<AzureStorageBlobCrd>,
         EventSourceInitializer<AzureStorageBlobCrd> {
 
     private final AzureStorageBlobWorkflow workflow;
-    private final List<? extends EventSourceProvider<AzureStorageBlobCrd>> dependentResources;
+    private final List<? extends EventSourceProvider<AzureStorageBlobCrd>> eventSourceProviders;
+    private final List<? extends Deleter<AzureStorageBlobCrd>> deleters;
 
-    public BlobContainerReconiler(AzureStorageBlobWorkflow workflow, List<? extends EventSourceProvider<AzureStorageBlobCrd>> dependentResources) {
+    public BlobContainerReconiler(AzureStorageBlobWorkflow workflow,
+                                  List<? extends EventSourceProvider<AzureStorageBlobCrd>> eventSourceProviders,
+                                  List<? extends Deleter<AzureStorageBlobCrd>> deleters) {
         this.workflow = workflow;
-        this.dependentResources = dependentResources;
+        this.eventSourceProviders = eventSourceProviders;
+        this.deleters = deleters;
     }
 
 
     @Override
-    public UpdateControl<AzureStorageBlobCrd> reconcile(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context) {
+    public UpdateControl<AzureStorageBlobCrd> reconcile(AzureStorageBlobCrd resource,
+                                                        Context<AzureStorageBlobCrd> context) {
 
         CrdValidator.validate(resource);
 
         Workflow<AzureStorageBlobCrd> flaisApplicationCrdWorkflow = workflow.build();
-        log.info("Reconciling {} dependent resources", flaisApplicationCrdWorkflow.getDependentResources().size());
+        log.debug("Reconciling {} dependent resources", flaisApplicationCrdWorkflow.getDependentResources().size());
         WorkflowReconcileResult reconcile = flaisApplicationCrdWorkflow.reconcile(resource, context);
 
 
@@ -48,36 +55,31 @@ public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
                 .dependentResourceStatus(results)
                 .build()
         );
-        return UpdateControl.updateResource(resource);
+        return UpdateControl.patchStatus(resource);
     }
 
+    @Override
+    public DeleteControl cleanup(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context) {
+        deleters.forEach(dr -> dr.delete(resource, context));
+        return DeleteControl.defaultDelete();
+    }
 
     @Override
     public ErrorStatusUpdateControl<AzureStorageBlobCrd> updateErrorStatus(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context, Exception e) {
         AzureStorageBlobStatus flaisApplicationStatus = new AzureStorageBlobStatus();
-        flaisApplicationStatus.setErrorMessage(e.getCause().getMessage());
+        flaisApplicationStatus.setErrorMessage(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
         resource.setStatus(flaisApplicationStatus);
         return ErrorStatusUpdateControl.updateStatus(resource);
     }
 
-//    @Override
-//    public Map<String, EventSource> prepareEventSources(EventSourceContext<AzureStorageBlobCrd> context) {
-//        List<EventSource> collect = dependentResources
-//                .stream()
-//                .map(dr -> (dr).initEventSource(context)).toList();
-//        return EventSourceInitializer
-//                .nameEventSources(
-//                        collect.toArray(EventSource[]::new)
-//                );
-//
-//    }
-
     @Override
     public Map<String, EventSource> prepareEventSources(EventSourceContext<AzureStorageBlobCrd> context) {
-        EventSource[] eventSources = dependentResources
+        EventSource[] eventSources = eventSourceProviders
                 .stream()
-                .map(crudKubernetesDependentResource -> crudKubernetesDependentResource.initEventSource(context))
+                .map(dr -> dr.initEventSource(context))
                 .toArray(EventSource[]::new);
         return EventSourceInitializer.nameEventSources(eventSources);
     }
+
+
 }

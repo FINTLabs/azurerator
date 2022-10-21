@@ -1,6 +1,6 @@
 package no.fintlabs.azure.storage.blob;
 
-import io.javaoperatorsdk.operator.api.ObservedGenerationAware;
+import io.javaoperatorsdk.operator.api.ObservedGenerationAwareStatus;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -12,19 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public
-class AzureStorageBlobStatus implements ObservedGenerationAware {
+class AzureStorageBlobStatus extends ObservedGenerationAwareStatus {
     private List<String> dependentResourceStatus = new ArrayList<>();
     private String errorMessage;
     private Long observedGeneration;
-
-
-    @Override
-    public void setObservedGeneration(Long generation) {
-        observedGeneration = generation;
-    }
-
-    @Override
-    public Long getObservedGeneration() {
-        return observedGeneration;
-    }
 }
