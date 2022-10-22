@@ -1,4 +1,4 @@
-package no.fintlabs.azure;
+package no.fintlabs.azure.storage.blob;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AzureBlobContainer {
+public class BlobContainer {
     private String storageAccountName;
     private String blobContainerName;
     private String resourceGroup;

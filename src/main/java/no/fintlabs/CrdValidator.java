@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class  CrdValidator {
+public class CrdValidator {
 
     public static List<String> MANDATORY_LABELS = Arrays.asList(
             "app.kubernetes.io/name",
@@ -19,11 +19,11 @@ public class  CrdValidator {
             "fintlabs.no/team");
 
     public static void validate(HasMetadata crd) {
-        log.info("Validating CRD");
+        log.debug("Validating CRD");
         List<String> missingLabels = new ArrayList<>(MANDATORY_LABELS);
         missingLabels.removeAll(crd.getMetadata().getLabels().keySet());
 
-        if (missingLabels.size() > 0 ) {
+        if (missingLabels.size() > 0) {
             throw new IllegalArgumentException("The following mandatory labels is missing: \n- " + String.join("\n- ", missingLabels));
         }
     }
