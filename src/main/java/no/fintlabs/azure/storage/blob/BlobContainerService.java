@@ -1,7 +1,6 @@
 package no.fintlabs.azure.storage.blob;
 
 import com.azure.resourcemanager.storage.fluent.models.ListContainerItemInner;
-import com.azure.resourcemanager.storage.models.BlobContainer;
 import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
@@ -26,12 +25,12 @@ public class BlobContainerService {
     }
 
 
-    public AzureBlobContainer add(AzureStorageBlobCrd crd) {
+    public BlobContainer add(BlobContainerCrd crd) {
 
         StorageAccount storageAccount = storageAccountService.add(crd);
 
         log.debug("Creating blob container...");
-        BlobContainer container = storageAccount
+        com.azure.resourcemanager.storage.models.BlobContainer container = storageAccount
                 .manager()
                 .blobContainers().defineContainer(crd.getMetadata().getName())
                 .withExistingStorageAccount(storageAccount)
@@ -40,7 +39,7 @@ public class BlobContainerService {
 
         log.debug("Blob container created: {}", container);
 
-        return AzureBlobContainer.builder()
+        return BlobContainer.builder()
                 .blobContainerName(container.name())
                 .resourceGroup(storageAccount.resourceGroupName())
                 .storageAccountName(storageAccount.name())
@@ -49,7 +48,7 @@ public class BlobContainerService {
 
     }
 
-    public Set<AzureBlobContainer> get(AzureStorageBlobCrd primaryResource) {
+    public Set<BlobContainer> get(BlobContainerCrd primaryResource) {
 
         return storageAccountService.getStorageAccount(primaryResource).map(storageAccount -> {
                     if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
@@ -57,10 +56,10 @@ public class BlobContainerService {
                         List<ListContainerItemInner> list = storageAccount
                                 .manager()
                                 .blobContainers()
-                                .list(storageAccountService.getResourceGroup(), storageAccountService.sanitizeStorageAccountName(primaryResource.getMetadata().getName()))
+                                .list(primaryResource.getSpec().getResourceGroup(), storageAccountService.sanitizeStorageAccountName(primaryResource.getMetadata().getName()))
                                 .stream().toList();
 
-                        return Collections.singleton(AzureBlobContainer.builder()
+                        return Collections.singleton(BlobContainer.builder()
                                 .storageAccountName(storageAccount.name())
                                 .resourceGroup(storageAccount.resourceGroupName())
                                 .blobContainerName(list.isEmpty() ? "" : list.get(0).name())
@@ -68,14 +67,14 @@ public class BlobContainerService {
                                 .build());
                     } else {
                         log.debug("Storage account is not ready yet");
-                        return new HashSet<AzureBlobContainer>();
+                        return new HashSet<BlobContainer>();
                     }
                 })
                 .orElse(Collections.emptySet());
 
     }
 
-    public void delete(AzureBlobContainer azureBlobContainer) {
-        storageAccountService.delete(azureBlobContainer);
+    public void delete(BlobContainer blobContainer) {
+        storageAccountService.delete(blobContainer);
     }
 }

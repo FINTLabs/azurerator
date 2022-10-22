@@ -8,12 +8,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public
-class AzureStorageBlobStatus extends ObservedGenerationAwareStatus {
+class BlobContainerStatus extends ObservedGenerationAwareStatus {
     private List<String> dependentResourceStatus = new ArrayList<>();
     private String errorMessage;
-    private Long observedGeneration;
 }

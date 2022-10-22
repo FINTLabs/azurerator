@@ -7,7 +7,6 @@ import io.javaoperatorsdk.operator.processing.dependent.Creator;
 import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -16,51 +15,49 @@ import java.util.Set;
 
 @Slf4j
 @Component
-public class AzureStorageContainerDependentResource
-        extends PerResourcePollingDependentResource<AzureBlobContainer, AzureStorageBlobCrd>
-        implements EventSourceProvider<AzureStorageBlobCrd>,
-        Creator<AzureBlobContainer, AzureStorageBlobCrd>,
-        Deleter<AzureStorageBlobCrd> {
+public class BlobContainerDependentResource
+        extends PerResourcePollingDependentResource<BlobContainer, BlobContainerCrd>
+        implements EventSourceProvider<BlobContainerCrd>,
+        Creator<BlobContainer, BlobContainerCrd>,
+        Deleter<BlobContainerCrd> {
 
-    @Value("${fint.azure.storage.resource-group-name:rg-storage}")
-    private String resourceGroup;
 
     private final BlobContainerService blobContainerService;
 
-    public AzureStorageContainerDependentResource(AzureStorageBlobWorkflow workflow,
-                                                  BlobContainerService blobContainerService) {
-        super(AzureBlobContainer.class, Duration.ofMinutes(1).toMillis());
+    public BlobContainerDependentResource(BlobContainerWorkflow workflow,
+                                          BlobContainerService blobContainerService) {
+        super(BlobContainer.class, Duration.ofMinutes(10).toMillis());
         this.blobContainerService = blobContainerService;
         workflow.addDependentResource(this);
     }
 
     @Override
-    protected AzureBlobContainer desired(AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
+    protected BlobContainer desired(BlobContainerCrd primary, Context<BlobContainerCrd> context) {
         log.debug("Desired storage account for {}:", primary.getMetadata().getName());
         log.debug("\t{}", primary);
 
-        return AzureBlobContainer.builder()
+        return BlobContainer.builder()
                 .blobContainerName(RandomStringUtils.randomAlphabetic(6))
-                .resourceGroup(resourceGroup)
+                .resourceGroup(primary.getSpec().getResourceGroup())
                 .storageAccountName(primary.getMetadata().getName())
                 .build();
     }
 
     @Override
-    public void delete(AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
-        context.getSecondaryResource(AzureBlobContainer.class)
+    public void delete(BlobContainerCrd primary, Context<BlobContainerCrd> context) {
+        context.getSecondaryResource(BlobContainer.class)
                 .ifPresent(blobContainerService::delete);
     }
 
     @Override
-    public AzureBlobContainer create(AzureBlobContainer desired, AzureStorageBlobCrd primary, Context<AzureStorageBlobCrd> context) {
+    public BlobContainer create(BlobContainer desired, BlobContainerCrd primary, Context<BlobContainerCrd> context) {
 
         return blobContainerService.add(primary);
 
     }
 
     @Override
-    public Set<AzureBlobContainer> fetchResources(AzureStorageBlobCrd primaryResource) {
+    public Set<BlobContainer> fetchResources(BlobContainerCrd primaryResource) {
         return blobContainerService.get(primaryResource);
     }
 }

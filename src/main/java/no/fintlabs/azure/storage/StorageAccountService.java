@@ -6,11 +6,9 @@ import com.azure.resourcemanager.storage.models.AccessTier;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.azure.storage.blob.AzureBlobContainer;
-import no.fintlabs.azure.storage.blob.AzureStorageBlobCrd;
-import org.springframework.beans.factory.annotation.Value;
+import no.fintlabs.azure.storage.blob.BlobContainer;
+import no.fintlabs.azure.storage.blob.BlobContainerCrd;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,22 +17,19 @@ import java.util.Optional;
 @Service
 public class StorageAccountService {
 
-    @Getter
-    @Value("${fint.azure.storage.resource-group-name:rg-storage}")
-    private String resourceGroup;
     private final StorageManager storageManager;
 
     public StorageAccountService(StorageManager storageManager) {
         this.storageManager = storageManager;
     }
 
-    public StorageAccount add(AzureStorageBlobCrd crd) {
+    public StorageAccount add(BlobContainerCrd crd) {
 
         log.debug("Creating storage account with name: {}", sanitizeStorageAccountName(crd.getMetadata().getName()));
         StorageAccount storageAccount = storageManager.storageAccounts()
                 .define(sanitizeStorageAccountName(crd.getMetadata().getName()))
                 .withRegion(Region.NORWAY_EAST)
-                .withExistingResourceGroup(resourceGroup)
+                .withExistingResourceGroup(crd.getSpec().getResourceGroup())
                 .withGeneralPurposeAccountKindV2()
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
                 .withBlobStorageAccountKind()
@@ -48,14 +43,14 @@ public class StorageAccountService {
         return storageAccount;
     }
 
-    public void delete(AzureBlobContainer azureBlobContainer) {
-        log.debug("Removing storage account {}", azureBlobContainer.getStorageAccountName());
+    public void delete(BlobContainer blobContainer) {
+        log.debug("Removing storage account {}", blobContainer.getStorageAccountName());
         storageManager
                 .storageAccounts()
-                .deleteByResourceGroup(resourceGroup, azureBlobContainer.getStorageAccountName());
+                .deleteByResourceGroup(blobContainer.getResourceGroup(), blobContainer.getStorageAccountName());
     }
 
-    public Optional<StorageAccount> getStorageAccount(AzureStorageBlobCrd primaryResource) {
+    public Optional<StorageAccount> getStorageAccount(BlobContainerCrd primaryResource) {
         log.debug("Fetching Azure blob container for {}...", primaryResource.getMetadata().getName());
         CheckNameAvailabilityResult checkNameAvailabilityResult = storageManager.storageAccounts().checkNameAvailability(sanitizeStorageAccountName(primaryResource.getMetadata().getName()));
         if (checkNameAvailabilityResult.isAvailable()) {
@@ -63,7 +58,7 @@ public class StorageAccountService {
         }
         return Optional.of(storageManager
                 .storageAccounts()
-                .getByResourceGroup(resourceGroup,
+                .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
                         sanitizeStorageAccountName(primaryResource.getMetadata().getName())
                 )
         );

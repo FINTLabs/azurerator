@@ -4,6 +4,6 @@ import io.javaoperatorsdk.operator.processing.dependent.workflow.builder.Workflo
 import org.springframework.stereotype.Component;
 
 @Component
-public class AzureStorageBlobWorkflow extends WorkflowBuilder<AzureStorageBlobCrd> {
+public class BlobContainerWorkflow extends WorkflowBuilder<BlobContainerCrd> {
 
 }

@@ -19,18 +19,18 @@ import java.util.Map;
 @ControllerConfiguration(
         generationAwareEventProcessing = false
 )
-public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
-        Cleaner<AzureStorageBlobCrd>,
-        ErrorStatusHandler<AzureStorageBlobCrd>,
-        EventSourceInitializer<AzureStorageBlobCrd> {
+public class BlobContainerReconiler implements Reconciler<BlobContainerCrd>,
+        Cleaner<BlobContainerCrd>,
+        ErrorStatusHandler<BlobContainerCrd>,
+        EventSourceInitializer<BlobContainerCrd> {
 
-    private final AzureStorageBlobWorkflow workflow;
-    private final List<? extends EventSourceProvider<AzureStorageBlobCrd>> eventSourceProviders;
-    private final List<? extends Deleter<AzureStorageBlobCrd>> deleters;
+    private final BlobContainerWorkflow workflow;
+    private final List<? extends EventSourceProvider<BlobContainerCrd>> eventSourceProviders;
+    private final List<? extends Deleter<BlobContainerCrd>> deleters;
 
-    public BlobContainerReconiler(AzureStorageBlobWorkflow workflow,
-                                  List<? extends EventSourceProvider<AzureStorageBlobCrd>> eventSourceProviders,
-                                  List<? extends Deleter<AzureStorageBlobCrd>> deleters) {
+    public BlobContainerReconiler(BlobContainerWorkflow workflow,
+                                  List<? extends EventSourceProvider<BlobContainerCrd>> eventSourceProviders,
+                                  List<? extends Deleter<BlobContainerCrd>> deleters) {
         this.workflow = workflow;
         this.eventSourceProviders = eventSourceProviders;
         this.deleters = deleters;
@@ -38,42 +38,42 @@ public class BlobContainerReconiler implements Reconciler<AzureStorageBlobCrd>,
 
 
     @Override
-    public UpdateControl<AzureStorageBlobCrd> reconcile(AzureStorageBlobCrd resource,
-                                                        Context<AzureStorageBlobCrd> context) {
+    public UpdateControl<BlobContainerCrd> reconcile(BlobContainerCrd resource,
+                                                     Context<BlobContainerCrd> context) {
 
         CrdValidator.validate(resource);
 
-        Workflow<AzureStorageBlobCrd> flaisApplicationCrdWorkflow = workflow.build();
+        Workflow<BlobContainerCrd> flaisApplicationCrdWorkflow = workflow.build();
         log.debug("Reconciling {} dependent resources", flaisApplicationCrdWorkflow.getDependentResources().size());
         WorkflowReconcileResult reconcile = flaisApplicationCrdWorkflow.reconcile(resource, context);
 
 
+
         List<String> results = new ArrayList<>();
         reconcile.getReconcileResults().forEach((dependentResource, reconcileResult) -> results.add(dependentResource.toString() + " -> " + reconcileResult.getOperation().name()));
-        resource.setStatus(AzureStorageBlobStatus
-                .builder()
-                .dependentResourceStatus(results)
-                .build()
-        );
+
+        BlobContainerStatus blobContainerStatus = new BlobContainerStatus();
+        blobContainerStatus.setDependentResourceStatus(results);
+        resource.setStatus(blobContainerStatus);
         return UpdateControl.patchStatus(resource);
     }
 
     @Override
-    public DeleteControl cleanup(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context) {
+    public DeleteControl cleanup(BlobContainerCrd resource, Context<BlobContainerCrd> context) {
         deleters.forEach(dr -> dr.delete(resource, context));
         return DeleteControl.defaultDelete();
     }
 
     @Override
-    public ErrorStatusUpdateControl<AzureStorageBlobCrd> updateErrorStatus(AzureStorageBlobCrd resource, Context<AzureStorageBlobCrd> context, Exception e) {
-        AzureStorageBlobStatus flaisApplicationStatus = new AzureStorageBlobStatus();
+    public ErrorStatusUpdateControl<BlobContainerCrd> updateErrorStatus(BlobContainerCrd resource, Context<BlobContainerCrd> context, Exception e) {
+        BlobContainerStatus flaisApplicationStatus = new BlobContainerStatus();
         flaisApplicationStatus.setErrorMessage(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
         resource.setStatus(flaisApplicationStatus);
         return ErrorStatusUpdateControl.updateStatus(resource);
     }
 
     @Override
-    public Map<String, EventSource> prepareEventSources(EventSourceContext<AzureStorageBlobCrd> context) {
+    public Map<String, EventSource> prepareEventSources(EventSourceContext<BlobContainerCrd> context) {
         EventSource[] eventSources = eventSourceProviders
                 .stream()
                 .map(dr -> dr.initEventSource(context))
