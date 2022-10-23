@@ -1,17 +1,21 @@
 package no.fintlabs.azure.storage;
 
 import com.azure.core.management.Region;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.HasName;
 import com.azure.resourcemanager.storage.StorageManager;
-import com.azure.resourcemanager.storage.models.AccessTier;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.azure.storage.blob.BlobContainer;
-import no.fintlabs.azure.storage.blob.BlobContainerCrd;
+import no.fintlabs.azure.AzureCrd;
+import no.fintlabs.azure.AzureSpec;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -19,11 +23,19 @@ public class StorageAccountService {
 
     private final StorageManager storageManager;
 
+    private final Set<String> storageAccounts = new HashSet<>();
+
     public StorageAccountService(StorageManager storageManager) {
         this.storageManager = storageManager;
     }
 
-    public StorageAccount add(BlobContainerCrd crd) {
+    @PostConstruct
+    public void init() {
+        storageAccounts.addAll(storageManager.storageAccounts().list().stream().map(HasName::name).collect(Collectors.toSet()));
+        log.debug("Found {} storage accounts", storageAccounts.size());
+    }
+
+    public StorageAccount add(AzureCrd<? extends AzureSpec, ?> crd) {
 
         log.debug("Creating storage account with name: {}", sanitizeStorageAccountName(crd.getMetadata().getName()));
         StorageAccount storageAccount = storageManager.storageAccounts()
@@ -32,9 +44,7 @@ public class StorageAccountService {
                 .withExistingResourceGroup(crd.getSpec().getResourceGroup())
                 .withGeneralPurposeAccountKindV2()
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
-                .withBlobStorageAccountKind()
-                .withAccessTier(AccessTier.HOT)
-                .withAccessFromAzureServices()
+                //.withAccessFromAzureServices()
                 .disableBlobPublicAccess()
                 .create();
 
@@ -43,25 +53,42 @@ public class StorageAccountService {
         return storageAccount;
     }
 
-    public void delete(BlobContainer blobContainer) {
+    public void delete(AzureStorageObject blobContainer) {
         log.debug("Removing storage account {}", blobContainer.getStorageAccountName());
         storageManager
                 .storageAccounts()
                 .deleteByResourceGroup(blobContainer.getResourceGroup(), blobContainer.getStorageAccountName());
+        log.debug("Storage account {} removed!", blobContainer.getStorageAccountName());
     }
 
-    public Optional<StorageAccount> getStorageAccount(BlobContainerCrd primaryResource) {
+    public Optional<StorageAccount> getStorageAccount(AzureCrd<? extends AzureSpec, ?> primaryResource) {
+
         log.debug("Fetching Azure blob container for {}...", primaryResource.getMetadata().getName());
-        CheckNameAvailabilityResult checkNameAvailabilityResult = storageManager.storageAccounts().checkNameAvailability(sanitizeStorageAccountName(primaryResource.getMetadata().getName()));
+
+        String sanitizedStorageAccountName = sanitizeStorageAccountName(primaryResource.getMetadata().getName());
+
+        CheckNameAvailabilityResult checkNameAvailabilityResult = storageManager
+                .storageAccounts()
+                .checkNameAvailability(sanitizedStorageAccountName);
         if (checkNameAvailabilityResult.isAvailable()) {
             return Optional.empty();
         }
-        return Optional.of(storageManager
-                .storageAccounts()
-                .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
-                        sanitizeStorageAccountName(primaryResource.getMetadata().getName())
-                )
-        );
+
+        /*
+        Since the storage account name is not available we need to check if it is one of our own names.
+        See https://learn.microsoft.com/en-us/azure/azure-resource-manager/troubleshooting/error-storage-account-name?tabs=bicep#storage-account-already-taken
+        for more information.
+         */
+        if (storageAccounts.contains(sanitizedStorageAccountName)) {
+            return Optional.of(storageManager
+                    .storageAccounts()
+                    .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
+                            sanitizeStorageAccountName(primaryResource.getMetadata().getName())
+                    )
+            );
+        }
+
+        throw new IllegalArgumentException("Storage account name " + sanitizedStorageAccountName + " is not globally unique. Storage account names must be globally unique across Azure.");
     }
 
     public String getConnectionString(StorageAccount storageAccount) {

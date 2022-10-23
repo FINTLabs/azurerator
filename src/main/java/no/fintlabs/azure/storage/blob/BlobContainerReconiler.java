@@ -24,6 +24,7 @@ public class BlobContainerReconiler implements Reconciler<BlobContainerCrd>,
         ErrorStatusHandler<BlobContainerCrd>,
         EventSourceInitializer<BlobContainerCrd> {
 
+
     private final BlobContainerWorkflow workflow;
     private final List<? extends EventSourceProvider<BlobContainerCrd>> eventSourceProviders;
     private final List<? extends Deleter<BlobContainerCrd>> deleters;
@@ -43,9 +44,9 @@ public class BlobContainerReconiler implements Reconciler<BlobContainerCrd>,
 
         CrdValidator.validate(resource);
 
-        Workflow<BlobContainerCrd> flaisApplicationCrdWorkflow = workflow.build();
-        log.debug("Reconciling {} dependent resources", flaisApplicationCrdWorkflow.getDependentResources().size());
-        WorkflowReconcileResult reconcile = flaisApplicationCrdWorkflow.reconcile(resource, context);
+        Workflow<BlobContainerCrd> blobContainerWorkflow = workflow.build();
+        log.debug("Reconciling {} dependent resources", blobContainerWorkflow.getDependentResources().size());
+        WorkflowReconcileResult reconcile = blobContainerWorkflow.reconcile(resource, context);
 
 
 
@@ -57,6 +58,7 @@ public class BlobContainerReconiler implements Reconciler<BlobContainerCrd>,
         resource.setStatus(blobContainerStatus);
         return UpdateControl.patchStatus(resource);
     }
+
 
     @Override
     public DeleteControl cleanup(BlobContainerCrd resource, Context<BlobContainerCrd> context) {

@@ -22,7 +22,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation 'com.azure.resourcemanager:azure-resourcemanager-storage:2.19.0'
-    implementation 'com.azure:azure-identity:1.6.0'
+    implementation 'com.azure:azure-identity:1.6.1'
+    //implementation 'com.azure:azure-storage-file-share:12.16.0'
     //implementation 'com.azure:azure-storage-blob:12.19.1'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'

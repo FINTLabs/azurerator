@@ -1,46 +1,41 @@
-package no.fintlabs.azure.storage.blob;
+package no.fintlabs.azure.storage.fileshare;
 
-import com.azure.resourcemanager.storage.fluent.models.ListContainerItemInner;
+import com.azure.resourcemanager.storage.fluent.models.FileShareInner;
 import com.azure.resourcemanager.storage.models.ProvisioningState;
-import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.storage.StorageAccountService;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 @Slf4j
 @Service
-public class BlobContainerService {
+public class FileShareService {
 
 
     private final StorageAccountService storageAccountService;
 
-    public BlobContainerService(StorageAccountService storageAccountService) {
+    public FileShareService(StorageAccountService storageAccountService) {
         this.storageAccountService = storageAccountService;
     }
 
 
-    public BlobContainer add(BlobContainerCrd crd) {
+    public FileShare add(FileShareCrd crd) {
 
         StorageAccount storageAccount = storageAccountService.add(crd);
 
-        log.debug("Creating blob container...");
-        com.azure.resourcemanager.storage.models.BlobContainer container = storageAccount
+        log.debug("Creating file share...");
+        FileShareInner fileShare = storageAccount
                 .manager()
-                .blobContainers()
-                .defineContainer(crd.getMetadata().getName())
-                .withExistingStorageAccount(storageAccount)
-                .withPublicAccess(PublicAccess.NONE)
-                .create();
+                .serviceClient()
+                .getFileShares()
+                .create(crd.getSpec().getResourceGroup(), storageAccount.name(), crd.getMetadata().getName(), new FileShareInner());
 
-        log.debug("Blob container created: {}", container);
+        log.debug("File share created: {}", fileShare.toString());
 
-        return BlobContainer.builder()
-                .blobContainerName(container.name())
+        return FileShare.builder()
                 .resourceGroup(storageAccount.resourceGroupName())
                 .storageAccountName(storageAccount.name())
                 .connectionString(storageAccountService.getConnectionString(storageAccount))
@@ -48,23 +43,17 @@ public class BlobContainerService {
 
     }
 
-    public Set<BlobContainer> get(BlobContainerCrd crd) {
-
+    public Set<FileShare> get(FileShareCrd crd) {
 
         if (storageAccountService.getStorageAccount(crd).isPresent()) {
+
             StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
             if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
                 log.debug("Storage account for {} is ready", crd.getMetadata().getName());
-                List<ListContainerItemInner> list = storageAccount
-                        .manager()
-                        .blobContainers()
-                        .list(crd.getSpec().getResourceGroup(), storageAccountService.sanitizeStorageAccountName(crd.getMetadata().getName()))
-                        .stream().toList();
 
-                return Collections.singleton(BlobContainer.builder()
+                return Collections.singleton(FileShare.builder()
                         .storageAccountName(storageAccount.name())
                         .resourceGroup(storageAccount.resourceGroupName())
-                        .blobContainerName(list.isEmpty() ? "" : list.get(0).name())
                         .connectionString(storageAccountService.getConnectionString(storageAccount))
                         .build());
             } else {
@@ -73,10 +62,9 @@ public class BlobContainerService {
             }
         }
         return Collections.emptySet();
-
     }
 
-    public void delete(BlobContainer blobContainer) {
-        storageAccountService.delete(blobContainer);
+    public void delete(FileShare fileShare) {
+        storageAccountService.delete(fileShare);
     }
 }

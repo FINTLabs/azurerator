@@ -1,4 +1,4 @@
-package no.fintlabs.azure.storage.blob;
+package no.fintlabs.azure.storage.fileshare;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
@@ -16,24 +16,24 @@ import java.util.Optional;
 @Slf4j
 @Component
 @KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=flaiserator")
-public class BlobContainerSecretDependentResource
-        extends CRUDKubernetesDependentResource<Secret, BlobContainerCrd> {
+public class FileShareSecretDependentResource
+        extends CRUDKubernetesDependentResource<Secret, FileShareCrd> {
 
-    public BlobContainerSecretDependentResource(BlobContainerWorkflow workflow, BlobContainerDependentResource blobContainerDependentResource, KubernetesClient kubernetesClient) {
+    public FileShareSecretDependentResource(FileShareWorkflow workflow, FileShareDependentResource fileShareDependentResource, KubernetesClient kubernetesClient) {
 
         super(Secret.class);
-        workflow.addDependentResource(this).dependsOn(blobContainerDependentResource);
+        workflow.addDependentResource(this).dependsOn(fileShareDependentResource);
         client = kubernetesClient;
     }
 
 
     @Override
-    protected Secret desired(BlobContainerCrd resource, Context<BlobContainerCrd> context) {
+    protected Secret desired(FileShareCrd resource, Context<FileShareCrd> context) {
 
         log.debug("Desired secret for {}", resource.getMetadata().getName());
 
-        Optional<BlobContainer> blobContainer = context.getSecondaryResource(BlobContainer.class);
-        BlobContainer azureBlobContainer = blobContainer.orElseThrow();
+        Optional<FileShare> fileShare = context.getSecondaryResource(FileShare.class);
+        FileShare azureFileShare = fileShare.orElseThrow();
 
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
@@ -45,8 +45,8 @@ public class BlobContainerSecretDependentResource
                 .withLabels(labels)
                 .endMetadata()
                 .withStringData(new HashMap<>() {{
-                    put("fint.azure.storage-account.connection-string", azureBlobContainer.getConnectionString());
-                    put("fint.azure.storage.container-blob.name", azureBlobContainer.getBlobContainerName());
+                    put("fint.azure.storage-account.connection-string", azureFileShare.getConnectionString());
+                    put("fint.azure.storage-account.file-share.name", azureFileShare.getShareName());
                 }})
                 .build();
 
@@ -55,7 +55,7 @@ public class BlobContainerSecretDependentResource
 
     // TODO: 18/10/2022 Need to improve matching
     @Override
-    public Matcher.Result<Secret> match(Secret actual, BlobContainerCrd primary, Context<BlobContainerCrd> context) {
+    public Matcher.Result<Secret> match(Secret actual, FileShareCrd primary, Context<FileShareCrd> context) {
         final var desiredSecretName = primary.getMetadata().getName();
         return Matcher.Result.nonComputed(actual.getMetadata().getName().equals(desiredSecretName));
     }

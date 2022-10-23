@@ -1,4 +1,4 @@
-package no.fintlabs.azure.storage.blob;
+package no.fintlabs.azure.storage.fileshare;
 
 import lombok.*;
 import no.fintlabs.azure.AzureSpec;
@@ -8,7 +8,7 @@ import no.fintlabs.azure.AzureSpec;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BlobContainerSpec implements AzureSpec {
+public class FileShareSpec implements AzureSpec {
     @Builder.Default
     private String resourceGroup = "rg-storage";
 }
