@@ -1,7 +1,7 @@
 apiVersion: fintlabs.no/v1alpha1
 kind: AzureFileShare
 metadata:
-  name: azure-file-share-test
+  name: fint-file-share-test
   labels:
     app.kubernetes.io/name: arkiv-adapter
     app.kubernetes.io/instance: arkiv-adapter_rogfk_no

@@ -37,9 +37,10 @@ public class StorageAccountService {
 
     public StorageAccount add(AzureCrd<? extends AzureSpec, ?> crd) {
 
-        log.debug("Creating storage account with name: {}", sanitizeStorageAccountName(crd.getMetadata().getName()));
+        String accountName = sanitizeStorageAccountName(crd.getMetadata().getName());
+        log.debug("Creating storage account with name: {}", accountName);
         StorageAccount storageAccount = storageManager.storageAccounts()
-                .define(sanitizeStorageAccountName(crd.getMetadata().getName()))
+                .define(accountName)
                 .withRegion(Region.NORWAY_EAST)
                 .withExistingResourceGroup(crd.getSpec().getResourceGroup())
                 .withGeneralPurposeAccountKindV2()
@@ -47,8 +48,10 @@ public class StorageAccountService {
                 //.withAccessFromAzureServices()
                 .disableBlobPublicAccess()
                 .create();
-
+        storageAccounts.add(accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
+        log.debug("We got {} storage accounts after adding a new one", storageAccounts.size());
+
 
         return storageAccount;
     }
@@ -58,7 +61,10 @@ public class StorageAccountService {
         storageManager
                 .storageAccounts()
                 .deleteByResourceGroup(blobContainer.getResourceGroup(), blobContainer.getStorageAccountName());
+        log.debug("We got {} storage accounts before removing", storageAccounts.size());
+        storageAccounts.removeIf(s -> s.equals(blobContainer.getStorageAccountName()));
         log.debug("Storage account {} removed!", blobContainer.getStorageAccountName());
+        log.debug("We got {} storage accounts after removing", storageAccounts.size());
     }
 
     public Optional<StorageAccount> getStorageAccount(AzureCrd<? extends AzureSpec, ?> primaryResource) {
