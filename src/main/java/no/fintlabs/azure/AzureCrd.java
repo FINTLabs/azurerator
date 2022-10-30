@@ -1,7 +1,10 @@
 package no.fintlabs.azure;
 
-import io.fabric8.kubernetes.api.model.Namespaced;
-import io.fabric8.kubernetes.client.CustomResource;
+import no.fintlabs.common.FlaisCrd;
 
-public abstract class AzureCrd<T extends AzureSpec, P> extends CustomResource<T, P> {
+/**
+ *
+ * @param <S>
+ */
+public abstract class AzureCrd<S extends AzureSpec> extends FlaisCrd<S> {
 }

@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-@Component
+//@Component
 @KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=flaiserator")
 public class BlobContainerSecretDependentResource
         extends CRUDKubernetesDependentResource<Secret, BlobContainerCrd> {

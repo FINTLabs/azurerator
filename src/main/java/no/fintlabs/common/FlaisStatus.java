@@ -1,15 +1,18 @@
-package no.fintlabs.azure.storage.blob;
+package no.fintlabs.common;
 
 import io.javaoperatorsdk.operator.api.ObservedGenerationAwareStatus;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ */
 @Getter
 @Setter
-public
-class BlobContainerStatus extends ObservedGenerationAwareStatus {
+public class FlaisStatus extends ObservedGenerationAwareStatus {
     private List<String> dependentResourceStatus = new ArrayList<>();
     private String errorMessage;
 }

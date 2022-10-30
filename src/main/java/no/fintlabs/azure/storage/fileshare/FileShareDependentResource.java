@@ -6,7 +6,7 @@ import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
 import io.javaoperatorsdk.operator.processing.dependent.Creator;
 import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
+import no.fintlabs.common.FlaisWorkflow;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -24,7 +24,7 @@ public class FileShareDependentResource
 
     private final FileShareService fileShareService;
 
-    public FileShareDependentResource(FileShareWorkflow workflow,
+    public FileShareDependentResource(FlaisWorkflow<FileShareCrd,FileShareSpec> workflow,
                                       FileShareService fileShareService) {
         super(FileShare.class, Duration.ofMinutes(10).toMillis());
         this.fileShareService = fileShareService;
@@ -45,8 +45,8 @@ public class FileShareDependentResource
     @Override
     public void delete(FileShareCrd primary, Context<FileShareCrd> context) {
         try {
-        context.getSecondaryResource(FileShare.class)
-                .ifPresent(fileShareService::delete);
+            context.getSecondaryResource(FileShare.class)
+                    .ifPresent(fileShareService::delete);
         } catch (IllegalArgumentException e) {
             log.error("An error occurred when deleting {}", primary.getMetadata().getName());
             log.error("Error message is {}", e.getMessage());
@@ -64,4 +64,5 @@ public class FileShareDependentResource
     public Set<FileShare> fetchResources(FileShareCrd primaryResource) {
         return fileShareService.get(primaryResource);
     }
+
 }

@@ -14,7 +14,7 @@ import java.util.Set;
 
 
 @Slf4j
-@Component
+//@Component
 public class BlobContainerDependentResource
         extends PerResourcePollingDependentResource<BlobContainer, BlobContainerCrd>
         implements EventSourceProvider<BlobContainerCrd>,

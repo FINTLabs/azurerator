@@ -8,6 +8,7 @@ import io.javaoperatorsdk.operator.processing.dependent.Matcher;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.CRUDKubernetesDependentResource;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDependent;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.common.FlaisWorkflow;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import java.util.Optional;
 public class FileShareSecretDependentResource
         extends CRUDKubernetesDependentResource<Secret, FileShareCrd> {
 
-    public FileShareSecretDependentResource(FileShareWorkflow workflow, FileShareDependentResource fileShareDependentResource, KubernetesClient kubernetesClient) {
+    public FileShareSecretDependentResource(FlaisWorkflow<FileShareCrd, FileShareSpec> workflow, FileShareDependentResource fileShareDependentResource, KubernetesClient kubernetesClient) {
 
         super(Secret.class);
         workflow.addDependentResource(this).dependsOn(fileShareDependentResource);
@@ -59,4 +60,5 @@ public class FileShareSecretDependentResource
         final var desiredSecretName = primary.getMetadata().getName();
         return Matcher.Result.nonComputed(actual.getMetadata().getName().equals(desiredSecretName));
     }
+
 }

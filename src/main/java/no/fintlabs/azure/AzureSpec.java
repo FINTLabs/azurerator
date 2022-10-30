@@ -1,5 +1,7 @@
 package no.fintlabs.azure;
 
-public interface AzureSpec {
+import no.fintlabs.common.FlaisSpec;
+
+public interface AzureSpec extends FlaisSpec{
     String getResourceGroup();
 }

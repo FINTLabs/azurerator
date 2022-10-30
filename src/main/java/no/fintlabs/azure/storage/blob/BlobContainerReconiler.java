@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Component
+//@Component
 @ControllerConfiguration(
         generationAwareEventProcessing = false
 )
@@ -53,7 +53,7 @@ public class BlobContainerReconiler implements Reconciler<BlobContainerCrd>,
         List<String> results = new ArrayList<>();
         reconcile.getReconcileResults().forEach((dependentResource, reconcileResult) -> results.add(dependentResource.toString() + " -> " + reconcileResult.getOperation().name()));
 
-        BlobContainerStatus blobContainerStatus = new BlobContainerStatus();
+        BlobContainerFlaisStatus blobContainerStatus = new BlobContainerFlaisStatus();
         blobContainerStatus.setDependentResourceStatus(results);
         resource.setStatus(blobContainerStatus);
         return UpdateControl.patchStatus(resource);
@@ -68,7 +68,7 @@ public class BlobContainerReconiler implements Reconciler<BlobContainerCrd>,
 
     @Override
     public ErrorStatusUpdateControl<BlobContainerCrd> updateErrorStatus(BlobContainerCrd resource, Context<BlobContainerCrd> context, Exception e) {
-        BlobContainerStatus flaisApplicationStatus = new BlobContainerStatus();
+        BlobContainerFlaisStatus flaisApplicationStatus = new BlobContainerFlaisStatus();
         flaisApplicationStatus.setErrorMessage(e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
         resource.setStatus(flaisApplicationStatus);
         return ErrorStatusUpdateControl.updateStatus(resource);

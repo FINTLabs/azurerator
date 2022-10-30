@@ -67,4 +67,8 @@ public class FileShareService {
     public void delete(FileShare fileShare) {
         storageAccountService.delete(fileShare);
     }
+
+    public String getStatus(FileShareCrd crd) {
+        return storageAccountService.getStatus(crd);
+    }
 }

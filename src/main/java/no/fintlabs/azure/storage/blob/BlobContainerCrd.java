@@ -9,10 +9,10 @@ import no.fintlabs.azure.AzureCrd;
 @Group("fintlabs.no")
 @Version("v1alpha1")
 @Kind("AzureBlobContainer")
-public class BlobContainerCrd extends AzureCrd<BlobContainerSpec, BlobContainerStatus> implements Namespaced {
+public class BlobContainerCrd extends AzureCrd<BlobContainerSpec> implements Namespaced {
     @Override
-    protected BlobContainerStatus initStatus() {
-        return new BlobContainerStatus();
+    protected BlobContainerFlaisStatus initStatus() {
+        return new BlobContainerFlaisStatus();
     }
 
     @Override
