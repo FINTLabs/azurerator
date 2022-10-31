@@ -6,6 +6,7 @@ import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
 import io.javaoperatorsdk.operator.processing.dependent.Creator;
 import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.common.FlaisWorkflow;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ import java.util.Set;
 
 
 @Slf4j
-//@Component
+@Component
 public class BlobContainerDependentResource
         extends PerResourcePollingDependentResource<BlobContainer, BlobContainerCrd>
         implements EventSourceProvider<BlobContainerCrd>,
@@ -24,7 +25,7 @@ public class BlobContainerDependentResource
 
     private final BlobContainerService blobContainerService;
 
-    public BlobContainerDependentResource(BlobContainerWorkflow workflow,
+    public BlobContainerDependentResource(FlaisWorkflow<BlobContainerCrd, BlobContainerSpec> workflow,
                                           BlobContainerService blobContainerService) {
         super(BlobContainer.class, Duration.ofMinutes(10).toMillis());
         this.blobContainerService = blobContainerService;

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
  * @param <T> the class providing the CustomResource
  * @param <S> the class providing the {@code Spec} part of this CustomResource
  */
-@Component
-public class FlaisWorkflow<T extends FlaisCrd<S>, S extends FlaisSpec> extends WorkflowBuilder<T> {
+public abstract class FlaisWorkflow<T extends FlaisCrd<S>, S extends FlaisSpec> extends WorkflowBuilder<T> {
 
 }

@@ -6,9 +6,9 @@ import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.azure.AzureCrd;
 import no.fintlabs.azure.AzureSpec;
 import no.fintlabs.azure.storage.fileshare.FileShareCrd;
+import no.fintlabs.common.FlaisCrd;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -39,7 +39,7 @@ public class StorageAccountService {
         log.debug("Found {} storage accounts", storageAccounts.size());
     }
 
-    public StorageAccount add(AzureCrd<? extends AzureSpec> crd) {
+    public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
 
         String accountName = sanitizeStorageAccountName(crd.getMetadata().getName());
         log.debug("Creating storage account with name: {}", accountName);
@@ -74,7 +74,7 @@ public class StorageAccountService {
         log.debug("We got {} storage accounts after removing", storageAccounts.size());
     }
 
-    public Optional<StorageAccount> getStorageAccount(AzureCrd<? extends AzureSpec> primaryResource) {
+    public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
 
         log.debug("Fetching Azure blob container for {}...", primaryResource.getMetadata().getName());
 

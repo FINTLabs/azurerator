@@ -8,18 +8,19 @@ import io.javaoperatorsdk.operator.processing.dependent.Matcher;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.CRUDKubernetesDependentResource;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDependent;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.common.FlaisWorkflow;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
-//@Component
+@Component
 @KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=flaiserator")
 public class BlobContainerSecretDependentResource
         extends CRUDKubernetesDependentResource<Secret, BlobContainerCrd> {
 
-    public BlobContainerSecretDependentResource(BlobContainerWorkflow workflow, BlobContainerDependentResource blobContainerDependentResource, KubernetesClient kubernetesClient) {
+    public BlobContainerSecretDependentResource(FlaisWorkflow<BlobContainerCrd, BlobContainerSpec> workflow, BlobContainerDependentResource blobContainerDependentResource, KubernetesClient kubernetesClient) {
 
         super(Secret.class);
         workflow.addDependentResource(this).dependsOn(blobContainerDependentResource);

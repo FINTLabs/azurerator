@@ -16,7 +16,7 @@ import java.util.List;
         generationAwareEventProcessing = false
 )
 public class FileShareReconiler extends FlaisReconiler<FileShareCrd, FileShareSpec> {
-    public FileShareReconiler(FlaisWorkflow<FileShareCrd, FileShareSpec> workflow,
+    public FileShareReconiler(FileShareWorkflow workflow,
                               List<? extends EventSourceProvider<FileShareCrd>> eventSourceProviders,
                               List<? extends Deleter<FileShareCrd>> deleters) {
         super(workflow, eventSourceProviders, deleters);

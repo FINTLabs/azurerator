@@ -1,4 +1,4 @@
-package no.fintlabs;
+package no.fintlabs.common;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import lombok.extern.slf4j.Slf4j;

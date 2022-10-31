@@ -7,7 +7,6 @@ import io.javaoperatorsdk.operator.processing.dependent.workflow.Workflow;
 import io.javaoperatorsdk.operator.processing.dependent.workflow.WorkflowReconcileResult;
 import io.javaoperatorsdk.operator.processing.event.source.EventSource;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.CrdValidator;
 
 import java.util.List;
 import java.util.Map;

@@ -4,16 +4,12 @@ import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
 import io.fabric8.kubernetes.model.annotation.Version;
-import no.fintlabs.azure.AzureCrd;
+import no.fintlabs.common.FlaisCrd;
 
 @Group("fintlabs.no")
 @Version("v1alpha1")
 @Kind("AzureBlobContainer")
-public class BlobContainerCrd extends AzureCrd<BlobContainerSpec> implements Namespaced {
-    @Override
-    protected BlobContainerFlaisStatus initStatus() {
-        return new BlobContainerFlaisStatus();
-    }
+public class BlobContainerCrd extends FlaisCrd<BlobContainerSpec> implements Namespaced {
 
     @Override
     protected BlobContainerSpec initSpec() {
