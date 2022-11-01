@@ -1,9 +1,8 @@
 package no.fintlabs.azure.storage.blob;
 
-import io.javaoperatorsdk.operator.processing.dependent.workflow.builder.WorkflowBuilder;
+import no.fintlabs.FlaisWorkflow;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BlobContainerWorkflow extends WorkflowBuilder<BlobContainerCrd> {
-
+public class BlobContainerWorkflow extends FlaisWorkflow<BlobContainerCrd, BlobContainerSpec> {
 }

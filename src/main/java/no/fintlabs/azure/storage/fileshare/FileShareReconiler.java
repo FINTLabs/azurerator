@@ -1,4 +1,4 @@
-package no.fintlabs.azure.storage.blob;
+package no.fintlabs.azure.storage.fileshare;
 
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
@@ -14,8 +14,11 @@ import java.util.List;
 @ControllerConfiguration(
         generationAwareEventProcessing = false
 )
-public class BlobContainerReconiler extends FlaisReconiler<BlobContainerCrd, BlobContainerSpec> {
-    public BlobContainerReconiler(BlobContainerWorkflow workflow, List<? extends EventSourceProvider<BlobContainerCrd>> eventSourceProviders, List<? extends Deleter<BlobContainerCrd>> deleters) {
+public class FileShareReconiler extends FlaisReconiler<FileShareCrd, FileShareSpec> {
+
+    public FileShareReconiler(FileShareWorkflow workflow,
+                              List<? extends EventSourceProvider<FileShareCrd>> eventSourceProviders,
+                              List<? extends Deleter<FileShareCrd>> deleters) {
         super(workflow, eventSourceProviders, deleters);
     }
 }
