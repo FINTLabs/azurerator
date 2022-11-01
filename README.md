@@ -48,8 +48,8 @@ When a `AzureBlobContainer` or `AzureFileShare` CRD is **deleted** the operator:
 
 ````shell
     az ad sp create-for-rbac --name <name of sp> \                                                                                                                                                                
-    --role Contributor \
-    --scopes <scope you need rights for. e.g. a resource group>
+    --role "Storage Account Contributor \
+    --scopes <subscription the operator needs rights in>
 ````
 See [Authenticating a service principal with a client secret](https://github.com/Azure/azure-sdk-for-java/wiki/Azure-Identity-Examples#authenticating-a-service-principal-with-a-client-secret)
 and [Create an Azure service principal with the Azure CLI](https://learn.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli)
