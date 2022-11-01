@@ -6,9 +6,9 @@ import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.FlaisCrd;
 import no.fintlabs.azure.AzureSpec;
 import no.fintlabs.azure.storage.fileshare.FileShareCrd;
-import no.fintlabs.common.FlaisCrd;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;

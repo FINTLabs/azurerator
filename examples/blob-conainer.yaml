@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
 spec:
-  resourceGroup: rg-profilbilder
+  resourceGroup: rg-myresourcegroup
 
 
 

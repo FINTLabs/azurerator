@@ -1,12 +1,8 @@
 package no.fintlabs.azure.storage.fileshare;
 
 import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
-import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
-import io.javaoperatorsdk.operator.processing.dependent.Creator;
-import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.common.FlaisWorkflow;
+import no.fintlabs.FlaisExternalDependentResource;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -15,21 +11,18 @@ import java.util.Set;
 
 @Slf4j
 @Component
-public class FileShareDependentResource
-        extends PerResourcePollingDependentResource<FileShare, FileShareCrd>
-        implements EventSourceProvider<FileShareCrd>,
-        Creator<FileShare, FileShareCrd>,
-        Deleter<FileShareCrd> {
+public class FileShareDependentResource extends FlaisExternalDependentResource<FileShare, FileShareCrd, FileShareSpec> {
 
 
     private final FileShareService fileShareService;
 
-    public FileShareDependentResource(FlaisWorkflow<FileShareCrd,FileShareSpec> workflow,
+    public FileShareDependentResource(FileShareWorkflow workflow,
                                       FileShareService fileShareService) {
-        super(FileShare.class, Duration.ofMinutes(10).toMillis());
+        super(FileShare.class, workflow);
         this.fileShareService = fileShareService;
-        workflow.addDependentResource(this);
+        setPollingPeriod(Duration.ofMinutes(10).toMillis());
     }
+
 
     @Override
     protected FileShare desired(FileShareCrd primary, Context<FileShareCrd> context) {

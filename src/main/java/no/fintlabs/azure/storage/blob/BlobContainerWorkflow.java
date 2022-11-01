@@ -1,6 +1,6 @@
 package no.fintlabs.azure.storage.blob;
 
-import no.fintlabs.common.FlaisWorkflow;
+import no.fintlabs.FlaisWorkflow;
 import org.springframework.stereotype.Component;
 
 @Component

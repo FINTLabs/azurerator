@@ -16,6 +16,12 @@ configurations {
 
 repositories {
     mavenCentral()
+    mavenLocal()
+    repositories {
+        maven {
+            url "https://repo.fintlabs.no/releases"
+        }
+    }
 }
 
 dependencies {
@@ -23,16 +29,13 @@ dependencies {
 
     implementation 'com.azure.resourcemanager:azure-resourcemanager-storage:2.19.0'
     implementation 'com.azure:azure-identity:1.6.1'
-    //implementation 'com.azure:azure-storage-file-share:12.16.0'
-    //implementation 'com.azure:azure-storage-blob:12.19.1'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
 
-    //implementation 'io.javaoperatorsdk:operator-framework:3.2.0'
-    //annotationProcessor 'io.javaoperatorsdk:operator-framework:3.2.0'
-    implementation "io.javaoperatorsdk:operator-framework-spring-boot-starter:3.2.0"
-    annotationProcessor 'io.fabric8:crd-generator-apt:6.1.1'
+    //implementation 'no.fintlabs:flais-operator-starter:0.0.1-SNAPSHOT'
+    implementation 'no.fintlabs:flais-operator-starter:1.0.0-rc-3'
+    annotationProcessor 'io.fabric8:crd-generator-apt:6.2.0'
 
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
