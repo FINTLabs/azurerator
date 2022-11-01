@@ -13,12 +13,7 @@ import java.util.Set;
 @Slf4j
 @Component
 public class BlobContainerDependentResource
-        extends FlaisExternalDependentResource<BlobContainer, BlobContainerCrd, BlobContainerSpec>
-//        extends PerResourcePollingDependentResource<BlobContainer, BlobContainerCrd>
-//        implements EventSourceProvider<BlobContainerCrd>,
-//        Creator<BlobContainer, BlobContainerCrd>,
-//        Deleter<BlobContainerCrd>
-{
+        extends FlaisExternalDependentResource<BlobContainer, BlobContainerCrd, BlobContainerSpec> {
 
 
     private final BlobContainerService blobContainerService;
@@ -27,7 +22,6 @@ public class BlobContainerDependentResource
                                           BlobContainerService blobContainerService) {
         super(BlobContainer.class, workflow);
         this.blobContainerService = blobContainerService;
-//        workflow.addDependentResource(this);
     }
 
     @Override

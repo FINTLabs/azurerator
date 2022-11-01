@@ -1,6 +1,9 @@
 package no.fintlabs.azure.storage.fileshare;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import no.fintlabs.azure.storage.AzureStorageObject;
 
