@@ -2,25 +2,14 @@ package no.fintlabs.azure.storage.blob;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import no.fintlabs.azure.storage.AzureStorageObject;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BlobContainer {
-    private String storageAccountName;
+public class BlobContainer extends AzureStorageObject {
     private String blobContainerName;
-    private String resourceGroup;
-    @JsonIgnore
-    private String connectionString;
-
-    @Override
-    public String toString() {
-        return "AzureBlobContainer{" +
-                "storageAccountName='" + storageAccountName + '\'' +
-                ", blobContainerName='" + blobContainerName + '\'' +
-                ", resourceGroup='" + resourceGroup + '\'' +
-                '}';
-    }
 }

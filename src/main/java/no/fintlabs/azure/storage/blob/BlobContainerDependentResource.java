@@ -1,34 +1,33 @@
 package no.fintlabs.azure.storage.blob;
 
 import io.javaoperatorsdk.operator.api.reconciler.Context;
-import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
-import io.javaoperatorsdk.operator.api.reconciler.dependent.EventSourceProvider;
-import io.javaoperatorsdk.operator.processing.dependent.Creator;
-import io.javaoperatorsdk.operator.processing.dependent.external.PerResourcePollingDependentResource;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.FlaisExternalDependentResource;
+import no.fintlabs.FlaisWorkflow;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.Set;
 
 
 @Slf4j
 @Component
 public class BlobContainerDependentResource
-        extends PerResourcePollingDependentResource<BlobContainer, BlobContainerCrd>
-        implements EventSourceProvider<BlobContainerCrd>,
-        Creator<BlobContainer, BlobContainerCrd>,
-        Deleter<BlobContainerCrd> {
+        extends FlaisExternalDependentResource<BlobContainer, BlobContainerCrd, BlobContainerSpec>
+//        extends PerResourcePollingDependentResource<BlobContainer, BlobContainerCrd>
+//        implements EventSourceProvider<BlobContainerCrd>,
+//        Creator<BlobContainer, BlobContainerCrd>,
+//        Deleter<BlobContainerCrd>
+{
 
 
     private final BlobContainerService blobContainerService;
 
-    public BlobContainerDependentResource(BlobContainerWorkflow workflow,
+    public BlobContainerDependentResource(FlaisWorkflow<BlobContainerCrd, BlobContainerSpec> workflow,
                                           BlobContainerService blobContainerService) {
-        super(BlobContainer.class, Duration.ofMinutes(10).toMillis());
+        super(BlobContainer.class, workflow);
         this.blobContainerService = blobContainerService;
-        workflow.addDependentResource(this);
+//        workflow.addDependentResource(this);
     }
 
     @Override

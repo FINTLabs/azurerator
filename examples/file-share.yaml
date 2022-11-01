@@ -1,7 +1,7 @@
 apiVersion: fintlabs.no/v1alpha1
-kind: AzureBlobContainer
+kind: AzureFileShare
 metadata:
-  name: azure-blob-container-test
+  name: fint3-file-share-test
   labels:
     app.kubernetes.io/name: arkiv-adapter
     app.kubernetes.io/instance: arkiv-adapter_rogfk_no
@@ -9,5 +9,7 @@ metadata:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
+
+
 
 
