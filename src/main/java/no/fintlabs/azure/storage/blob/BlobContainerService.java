@@ -52,6 +52,7 @@ public class BlobContainerService {
 
 
         if (storageAccountService.getStorageAccount(crd).isPresent()) {
+
             StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
             if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
                 log.debug("Storage account for {} is ready", crd.getMetadata().getName());
