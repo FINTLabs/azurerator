@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
 import no.fintlabs.azure.AzureSpec;
 import no.fintlabs.azure.storage.fileshare.FileShareCrd;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -20,6 +21,9 @@ import java.util.Optional;
 @Service
 public class StorageAccountService {
 
+    public static final String ANNOTATION_STORAGE_ACCOUNT_NAME = "fintlabs.no/storage-account-name";
+
+
     private final StorageManager storageManager;
 
     private final Map<String, String> storageAccounts = new HashMap<>();
@@ -30,7 +34,6 @@ public class StorageAccountService {
 
     @PostConstruct
     public void init() {
-        //storageAccounts.addAll(storageManager.storageAccounts().list().stream().map(HasName::name).collect(Collectors.toSet()));
         storageManager.storageAccounts().list().forEach(storageAccount ->
                 storageAccounts.put(
                         getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
@@ -41,7 +44,7 @@ public class StorageAccountService {
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
 
-        String accountName = sanitizeStorageAccountName(crd.getMetadata().getName());
+        String accountName = generateStorageAccountName();
         log.debug("Creating storage account with name: {}", accountName);
         StorageAccount storageAccount = storageManager.storageAccounts()
                 .define(accountName)
@@ -59,7 +62,6 @@ public class StorageAccountService {
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
         log.debug("We got {} storage accounts after adding a new one", storageAccounts.size());
 
-
         return storageAccount;
     }
 
@@ -76,23 +78,16 @@ public class StorageAccountService {
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
 
-        log.debug("Fetching Azure blob container for {}...", primaryResource.getMetadata().getName());
+        log.debug("Check if Azure Storage Account for resource {} exists", primaryResource.getMetadata().getName());
 
-        String sanitizedStorageAccountName = sanitizeStorageAccountName(primaryResource.getMetadata().getName());
+        Optional<String> storageAccountName = getStorageAccountName(primaryResource);
 
-        CheckNameAvailabilityResult checkNameAvailabilityResult = storageManager
-                .storageAccounts()
-                .checkNameAvailability(sanitizedStorageAccountName);
-        if (checkNameAvailabilityResult.isAvailable()) {
+        if (storageAccountName.isEmpty()) {
             return Optional.empty();
         }
 
-        /*
-        Since the storage account name is not available we need to check if it is one of our own names.
-        See https://learn.microsoft.com/en-us/azure/azure-resource-manager/troubleshooting/error-storage-account-name?tabs=bicep#storage-account-already-taken
-        for more information.
-         */
-        if (storageAccounts.containsKey(getAccountStatusName(primaryResource.getSpec().getResourceGroup(), sanitizedStorageAccountName))) {
+        if (storageAccounts.containsKey(storageAccountName.get())) {
+            log.debug("Fetching Azure blob container for {}...", getStorageAccountName(primaryResource));
             return Optional.of(storageManager
                     .storageAccounts()
                     .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
@@ -101,7 +96,8 @@ public class StorageAccountService {
             );
         }
 
-        throw new IllegalArgumentException("Storage account name " + sanitizedStorageAccountName + " is not globally unique. Storage account names must be globally unique across Azure.");
+        return Optional.empty();
+
     }
 
     public String getStatus(FileShareCrd crd) {
@@ -118,6 +114,27 @@ public class StorageAccountService {
 
     public String sanitizeStorageAccountName(String name) {
         return name.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+    }
+
+    public String generateStorageAccountName() {
+        String name = "azurerator" + RandomStringUtils.randomAlphanumeric(14).toLowerCase();
+
+        CheckNameAvailabilityResult checkNameAvailabilityResult = storageManager
+                .storageAccounts()
+                .checkNameAvailability(name);
+
+        while (!checkNameAvailabilityResult.isAvailable()) {
+            name = "azurerator" + RandomStringUtils.randomAlphanumeric(14).toLowerCase();
+
+            checkNameAvailabilityResult = storageManager
+                    .storageAccounts()
+                    .checkNameAvailability(name);
+        }
+        return name;
+    }
+
+    public Optional<String> getStorageAccountName(FlaisCrd<? extends AzureSpec> primaryResource) {
+        return Optional.ofNullable(primaryResource.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
     }
 
     private String getAccountStatusName(String resourceGroup, String name) {
