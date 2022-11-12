@@ -35,9 +35,15 @@ public class FileShareSecretDependentResource extends FlaisKubernetesDependentRe
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
         labels.put("app.kubernetes.io/managed-by", "flaiserator");
-        return new SecretBuilder().withNewMetadata().withName(resource.getMetadata().getName()).withNamespace(resource.getMetadata().getNamespace()).withLabels(labels).endMetadata().withStringData(new HashMap<>() {{
-            put("fint.azure.storage-account.connection-string", azureFileShare.getConnectionString());
-            put("fint.azure.storage-account.file-share.name", azureFileShare.getShareName());
-        }}).build();
+        return new SecretBuilder()
+                .withNewMetadata()
+                .withName(resource.getMetadata().getName())
+                .withNamespace(resource.getMetadata().getNamespace())
+                .withLabels(labels)
+                .endMetadata()
+                .withStringData(new HashMap<>() {{
+                    put("fint.azure.storage-account.connection-string", azureFileShare.getConnectionString());
+                    put("fint.azure.storage-account.file-share.name", azureFileShare.getShareName());
+                }}).build();
     }
 }

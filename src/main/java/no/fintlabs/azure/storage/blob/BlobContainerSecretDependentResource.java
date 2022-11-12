@@ -35,10 +35,15 @@ public class BlobContainerSecretDependentResource extends FlaisKubernetesDepende
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
         labels.put("app.kubernetes.io/managed-by", "flaiserator");
-        return new SecretBuilder().withNewMetadata().withName(resource.getMetadata().getName()).withNamespace(resource.getMetadata().getNamespace()).withLabels(labels).endMetadata().withStringData(new HashMap<>() {{
-            put("fint.azure.storage-account.connection-string", azureBlobContainer.getConnectionString());
-            put("fint.azure.storage.container-blob.name", azureBlobContainer.getBlobContainerName());
-        }}).build();
+        return new SecretBuilder()
+                .withNewMetadata()
+                .withName(resource.getMetadata().getName())
+                .withNamespace(resource.getMetadata().getNamespace())
+                .withLabels(labels).endMetadata()
+                .withStringData(new HashMap<>() {{
+                    put("fint.azure.storage-account.connection-string", azureBlobContainer.getConnectionString());
+                    put("fint.azure.storage.container-blob.name", azureBlobContainer.getBlobContainerName());
+                }}).build();
 
 
     }
