@@ -8,6 +8,7 @@ import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
 import no.fintlabs.azure.AzureSpec;
+import no.fintlabs.azure.Defaults;
 import no.fintlabs.azure.storage.fileshare.FileShareCrd;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
@@ -17,11 +18,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static no.fintlabs.azure.Defaults.ANNOTATION_STORAGE_ACCOUNT_NAME;
+
 @Slf4j
 @Service
 public class StorageAccountService {
 
-    public static final String ANNOTATION_STORAGE_ACCOUNT_NAME = "fintlabs.no/storage-account-name";
 
 
     private final StorageManager storageManager;
@@ -34,7 +36,10 @@ public class StorageAccountService {
 
     @PostConstruct
     public void init() {
-        storageManager.storageAccounts().list().forEach(storageAccount ->
+        storageManager.storageAccounts().list()
+                .stream()
+                .filter(storageAccount -> storageAccount.resourceGroupName().equals(Defaults.RESOURCE_GROUP))
+                .forEach(storageAccount ->
                 storageAccounts.put(
                         getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
                         storageAccount.accountStatuses().primary().name())
@@ -59,6 +64,7 @@ public class StorageAccountService {
                 getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
                 storageAccount.accountStatuses().primary().name()
         );
+        crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
         log.debug("We got {} storage accounts after adding a new one", storageAccounts.size());
 
@@ -80,20 +86,19 @@ public class StorageAccountService {
 
         log.debug("Check if Azure Storage Account for resource {} exists", primaryResource.getMetadata().getName());
 
-        Optional<String> storageAccountName = getStorageAccountName(primaryResource);
+        Optional<String> storageAccountName = getStorageAccountNameFromAnnotation(primaryResource);
 
         if (storageAccountName.isEmpty()) {
             return Optional.empty();
         }
 
-        if (storageAccounts.containsKey(storageAccountName.get())) {
-            log.debug("Fetching Azure blob container for {}...", getStorageAccountName(primaryResource));
+        if (storageAccounts.containsKey(getAccountStatusName(primaryResource.getSpec().getResourceGroup(), storageAccountName.get()))) {
+            log.debug("Fetching Azure blob container for {}...", getStorageAccountNameFromAnnotation(primaryResource));
             return Optional.of(storageManager
                     .storageAccounts()
                     .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
-                            sanitizeStorageAccountName(primaryResource.getMetadata().getName())
-                    )
-            );
+                            storageAccountName.get())
+                    );
         }
 
         return Optional.empty();
@@ -112,10 +117,6 @@ public class StorageAccountService {
         );
     }
 
-    public String sanitizeStorageAccountName(String name) {
-        return name.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-    }
-
     public String generateStorageAccountName() {
         String name = "azurerator" + RandomStringUtils.randomAlphanumeric(14).toLowerCase();
 
@@ -130,16 +131,17 @@ public class StorageAccountService {
                     .storageAccounts()
                     .checkNameAvailability(name);
         }
+
         return name;
     }
 
-    public Optional<String> getStorageAccountName(FlaisCrd<? extends AzureSpec> primaryResource) {
+    public Optional<String> getStorageAccountNameFromAnnotation(FlaisCrd<? extends AzureSpec> primaryResource) {
         return Optional.ofNullable(primaryResource.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
     }
 
     private String getAccountStatusName(String resourceGroup, String name) {
         return String.format("%s/%s",
                 resourceGroup,
-                sanitizeStorageAccountName(name));
+                name);
     }
 }

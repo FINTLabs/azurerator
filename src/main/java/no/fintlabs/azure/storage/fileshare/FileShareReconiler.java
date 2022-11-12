@@ -1,8 +1,6 @@
 package no.fintlabs.azure.storage.fileshare;
 
-import io.javaoperatorsdk.operator.api.reconciler.Context;
 import io.javaoperatorsdk.operator.api.reconciler.ControllerConfiguration;
-import io.javaoperatorsdk.operator.api.reconciler.UpdateControl;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.Deleter;
 import io.javaoperatorsdk.operator.api.reconciler.dependent.DependentResource;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +20,6 @@ public class FileShareReconiler extends FlaisReconiler<FileShareCrd, FileShareSp
                               List<? extends DependentResource<?, FileShareCrd>> eventSourceProviders,
                               List<? extends Deleter<FileShareCrd>> deleters) {
         super(workflow, eventSourceProviders, deleters);
-    }
 
-    @Override
-    public UpdateControl<FileShareCrd> reconcile(FileShareCrd resource, Context<FileShareCrd> context) {
-
-        return super.reconcile(resource, context);
     }
 }

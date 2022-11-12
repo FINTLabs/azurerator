@@ -59,7 +59,8 @@ public class BlobContainerService {
                 List<ListContainerItemInner> list = storageAccount
                         .manager()
                         .blobContainers()
-                        .list(crd.getSpec().getResourceGroup(), storageAccountService.sanitizeStorageAccountName(crd.getMetadata().getName()))
+                        .list(crd.getSpec().getResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
+                                .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream().toList();
 
                 return Collections.singleton(BlobContainer.builder()
