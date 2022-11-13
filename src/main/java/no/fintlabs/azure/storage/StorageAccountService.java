@@ -26,6 +26,7 @@ public class StorageAccountService {
 
     private final StorageManager storageManager;
 
+    // TODO: 13/11/2022 Move this to a repository
     private final Map<String, String> storageAccounts = new HashMap<>();
 
     public StorageAccountService(StorageManager storageManager) {
@@ -56,7 +57,7 @@ public class StorageAccountService {
                 .withExistingResourceGroup(crd.getSpec().getResourceGroup())
                 .withGeneralPurposeAccountKindV2()
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
-                //.withAccessFromAzureServices()
+                .withAccessFromAzureServices()
                 .disableBlobPublicAccess()
                 .create();
         storageAccounts.put(
