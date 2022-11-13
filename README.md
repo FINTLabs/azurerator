@@ -57,6 +57,7 @@ metadata:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
+    fintlabs.no/org-id: flais.io
 ```
 
 ### Secret properties
@@ -80,6 +81,7 @@ metadata:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
+    fintlabs.no/org-id: flais.io
 ```
 
 ### Secret properties
@@ -127,8 +129,8 @@ Put this in a secret called `azurerator` with the following properties:
 
 ## Properties
 
-| Property                                          | Default            | Description                                                |
-|---------------------------------------------------|--------------------|------------------------------------------------------------|
-| fint.azure.storage-account.resource-group         | rg-managed-storage | Name of resource group                                     |
-| fint.azure.storage-account.polling-period-minutes | 10                 | Period in minutes between each polling for storage account |
+| Property                                          | Default              | Description                                                |
+|---------------------------------------------------|----------------------|------------------------------------------------------------|
+| fint.azure.storage-account.resource-group         | `rg-managed-storage` | Name of resource group                                     |
+| fint.azure.storage-account.polling-period-minutes | `10`                 | Period in minutes between each polling for storage account |
 
