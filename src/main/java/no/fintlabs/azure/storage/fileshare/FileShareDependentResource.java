@@ -3,6 +3,7 @@ package no.fintlabs.azure.storage.fileshare;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisExternalDependentResource;
+import no.fintlabs.azure.AzureConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
@@ -16,12 +17,15 @@ public class FileShareDependentResource extends FlaisExternalDependentResource<F
 
 
     private final FileShareService fileShareService;
+    private final AzureConfiguration azureConfiguration;
+
 
     public FileShareDependentResource(FileShareWorkflow workflow,
-                                      FileShareService fileShareService) {
+                                      FileShareService fileShareService, AzureConfiguration azureConfiguration) {
         super(FileShare.class, workflow);
         this.fileShareService = fileShareService;
-        setPollingPeriod(Duration.ofMinutes(10).toMillis());
+        this.azureConfiguration = azureConfiguration;
+        setPollingPeriod(Duration.ofMinutes(azureConfiguration.getStorageAccountPollingPeriodInMinutes()).toMillis());
     }
 
 
@@ -31,9 +35,9 @@ public class FileShareDependentResource extends FlaisExternalDependentResource<F
         log.debug("\t{}", primary);
 
         return FileShare.builder()
-                .resourceGroup(primary.getSpec().getResourceGroup())
+                .resourceGroup(azureConfiguration.getStorageAccountResourceGroup())
                 .shareName(RandomStringUtils.randomAlphabetic(12).toLowerCase())
-                .storageAccountName(primary.getMetadata().getName())
+                //.storageAccountName(primary.getMetadata().getName())
                 .build();
     }
 

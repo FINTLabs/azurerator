@@ -27,7 +27,7 @@ public class BlobContainerDependentResource
         super(BlobContainer.class, workflow);
         this.blobContainerService = blobContainerService;
         this.azureConfiguration = azureConfiguration;
-        setPollingPeriod(Duration.ofMinutes(10).toMillis());
+        setPollingPeriod(Duration.ofMinutes(azureConfiguration.getStorageAccountPollingPeriodInMinutes()).toMillis());
     }
 
     @Override

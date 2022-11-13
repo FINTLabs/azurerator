@@ -42,7 +42,8 @@ public class StorageAccountService {
                                 getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
                                 storageAccount.accountStatuses().primary().name())
                 );
-        log.debug("Found {} storage accounts", storageAccounts.size());
+        log.debug("Found {} storage accounts:", storageAccounts.size());
+        storageAccounts.forEach((name, status) -> log.debug("{} -> {}", name, status));
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {

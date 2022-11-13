@@ -40,15 +40,9 @@ public class BlobContainerService {
         log.debug("Blob container created: {}", container.name());
 
         blobContainer.setConnectionString(storageAccountService.getConnectionString(storageAccount));
+        blobContainer.setStorageAccountName(storageAccount.name());
 
         return blobContainer;
-//        return BlobContainer.builder()
-//                .blobContainerName(container.name())
-//                .resourceGroup(storageAccount.resourceGroupName())
-//                .storageAccountName(storageAccount.name())
-//                .connectionString(storageAccountService.getConnectionString(storageAccount))
-//                .build();
-
     }
 
     public Set<BlobContainer> get(BlobContainerCrd crd) {

@@ -19,6 +19,11 @@ public class AzureConfiguration {
     @Value("${fint.azure.storage-account.resource-group:rg-managed-storage}")
     private String storageAccountResourceGroup;
 
+    @Getter
+    @Setter
+    @Value("${fint.azure.storage-account.polling-period-minutes:10}")
+    private long storageAccountPollingPeriodInMinutes;
+
     @Bean
     public StorageManager createStorageMananger() {
         AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);

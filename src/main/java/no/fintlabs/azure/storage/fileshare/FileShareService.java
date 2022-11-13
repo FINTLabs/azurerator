@@ -42,6 +42,7 @@ public class FileShareService {
         log.debug("File share created: {}", fileShare.name());
 
         desired.setConnectionString(storageAccountService.getConnectionString(storageAccount));
+        desired.setStorageAccountName(storageAccount.name());
 
         return desired;
     }
