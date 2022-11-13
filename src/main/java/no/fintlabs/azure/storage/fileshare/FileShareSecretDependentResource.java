@@ -46,7 +46,7 @@ public class FileShareSecretDependentResource extends FlaisKubernetesDependentRe
                 .endMetadata()
                 .withType("Opaque")
                 .addToData("fint.azure.storage-account.connection-string", encode(azureFileShare.getConnectionString()))
-                //.addToData("fint.azure.storage-account.file-share.name", encode((azureFileShare.getShareName())))
+                .addToData("fint.azure.storage-account.file-share.name", encode((azureFileShare.getShareName())))
                 .build();
     }
 

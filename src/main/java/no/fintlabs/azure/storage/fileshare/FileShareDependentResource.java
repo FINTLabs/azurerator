@@ -3,6 +3,7 @@ package no.fintlabs.azure.storage.fileshare;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisExternalDependentResource;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -31,6 +32,7 @@ public class FileShareDependentResource extends FlaisExternalDependentResource<F
 
         return FileShare.builder()
                 .resourceGroup(primary.getSpec().getResourceGroup())
+                .shareName(RandomStringUtils.randomAlphabetic(12).toLowerCase())
                 .storageAccountName(primary.getMetadata().getName())
                 .build();
     }
@@ -50,7 +52,7 @@ public class FileShareDependentResource extends FlaisExternalDependentResource<F
 
     @Override
     public FileShare create(FileShare desired, FileShareCrd primary, Context<FileShareCrd> context) {
-        return fileShareService.add(primary);
+        return fileShareService.add(desired,primary);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package no.fintlabs.azure.storage.fileshare;
 
 import com.azure.resourcemanager.storage.fluent.models.FileShareInner;
+import com.azure.resourcemanager.storage.fluent.models.FileShareItemInner;
 import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import no.fintlabs.azure.storage.StorageAccountService;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -22,7 +24,7 @@ public class FileShareService {
     }
 
 
-    public FileShare add(FileShareCrd crd) {
+    public FileShare add(FileShare desired, FileShareCrd crd) {
 
         StorageAccount storageAccount = storageAccountService.add(crd);
 
@@ -33,18 +35,15 @@ public class FileShareService {
                 .getFileShares()
                 .create(crd.getSpec().getResourceGroup(),
                         storageAccount.name(),
-                        crd.getMetadata().getName(),
+                        desired.getShareName(),
                         new FileShareInner()
                 );
 
         log.debug("File share created: {}", fileShare.name());
 
-        return FileShare.builder()
-                .resourceGroup(storageAccount.resourceGroupName())
-                .storageAccountName(storageAccount.name())
-                .connectionString(storageAccountService.getConnectionString(storageAccount))
-                .build();
+        desired.setConnectionString(storageAccountService.getConnectionString(storageAccount));
 
+        return desired;
     }
 
     public Set<FileShare> get(FileShareCrd crd) {
@@ -55,9 +54,18 @@ public class FileShareService {
             if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
                 log.debug("Storage account for {} is ready", crd.getMetadata().getName());
 
+                List<FileShareItemInner> fileShares = storageAccount
+                        .manager()
+                        .serviceClient()
+                        .getFileShares()
+                        .list(crd.getSpec().getResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
+                                .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
+                        .stream()
+                        .toList();
                 return Collections.singleton(FileShare.builder()
                         .storageAccountName(storageAccount.name())
                         .resourceGroup(storageAccount.resourceGroupName())
+                                .shareName(fileShares.isEmpty() ? "" : fileShares.get(0).name())
                         .connectionString(storageAccountService.getConnectionString(storageAccount))
                         .build());
             } else {

@@ -59,7 +59,7 @@ public class BlobContainerService {
             StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
             if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
                 log.debug("Storage account for {} is ready", crd.getMetadata().getName());
-                List<ListContainerItemInner> list = storageAccount
+                List<ListContainerItemInner> blobContainers = storageAccount
                         .manager()
                         .blobContainers()
                         .list(crd.getSpec().getResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
@@ -69,7 +69,7 @@ public class BlobContainerService {
                 return Collections.singleton(BlobContainer.builder()
                         .storageAccountName(storageAccount.name())
                         .resourceGroup(storageAccount.resourceGroupName())
-                        .blobContainerName(list.isEmpty() ? "" : list.get(0).name())
+                        .blobContainerName(blobContainers.isEmpty() ? "" : blobContainers.get(0).name())
                         .connectionString(storageAccountService.getConnectionString(storageAccount))
                         .build());
             } else {
