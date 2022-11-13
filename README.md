@@ -29,8 +29,9 @@ and compose a Kubernetes Secret containing the connection string and the file sh
 
 When a `AzureBlobContainer` or `AzureFileShare` CRD is **created** the operator:
 
-- Creates a storage account in Azure with the CRD name, normalized to fit the Azure storage account naming standards.
-- Creates a blob container/file share with the name of the CRD in the created storage account.
+- Creates a storage account in Azure. The name is has the following format `azurerator<14 character uniq string>`
+  The storage account name can be found in the annotation `fintlabs.no/storage-account-name`
+- Creates a blob container/file share. The name is a 12 character uniq string.
 
 When a `AzureBlobContainer` or `AzureFileShare` CRD is **updated** the operator:
 
