@@ -59,11 +59,6 @@ metadata:
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
 ```
-### Specification parameters
-
-| Parameters    | Default value |
-|:--------------|:--------------|
-| resourceGroup | `rg-storage`  |
 
 ### Secret properties
 
@@ -87,12 +82,6 @@ metadata:
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
 ```
-
-### Specification parameters
-
-| Parameters    | Default value |
-|:--------------|:--------------|
-| resourceGroup | `rg-storage`  |
 
 ### Secret properties
 
@@ -136,3 +125,11 @@ Put this in a secret called `azurerator` with the following properties:
 | AZURE_CLIENT_SECRET   | `password`             |
 | AZURE_SUBSCRIPTION_ID | _your subscription id_ |
 | AZURE_TENANT_ID       | `tenant`               |
+
+## Properties
+
+| Property                                          | Default            | Description                                                |
+|---------------------------------------------------|--------------------|------------------------------------------------------------|
+| fint.azure.storage-account.resource-group         | rg-managed-storage | Name of resource group                                     |
+| fint.azure.storage-account.polling-period-minutes | 10                 | Period in minutes between each polling for storage account |
+
