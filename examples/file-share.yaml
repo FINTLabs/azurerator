@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/component: adapter
     app.kubernetes.io/part-of: arkiv
     fintlabs.no/team: flais
+    fintlabs.no/org-id: flais.io
+
 
 
 

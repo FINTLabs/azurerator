@@ -5,6 +5,7 @@ import com.azure.resourcemanager.storage.fluent.models.FileShareItemInner;
 import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.storage.StorageAccountService;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +19,11 @@ public class FileShareService {
 
 
     private final StorageAccountService storageAccountService;
+    private final AzureConfiguration azureConfiguration;
 
-    public FileShareService(StorageAccountService storageAccountService) {
+    public FileShareService(StorageAccountService storageAccountService, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
+        this.azureConfiguration = azureConfiguration;
     }
 
 
@@ -33,7 +36,7 @@ public class FileShareService {
                 .manager()
                 .serviceClient()
                 .getFileShares()
-                .create(crd.getSpec().getResourceGroup(),
+                .create(azureConfiguration.getStorageAccountResourceGroup(),
                         storageAccount.name(),
                         desired.getShareName(),
                         new FileShareInner()
@@ -59,7 +62,7 @@ public class FileShareService {
                         .manager()
                         .serviceClient()
                         .getFileShares()
-                        .list(crd.getSpec().getResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
+                        .list(azureConfiguration.getStorageAccountResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream()
                         .toList();
