@@ -24,7 +24,7 @@ public class BlobContainerService {
     }
 
 
-    public BlobContainer add(BlobContainerCrd crd) {
+    public BlobContainer add(BlobContainer blobContainer, BlobContainerCrd crd) {
 
         StorageAccount storageAccount = storageAccountService.add(crd);
 
@@ -32,20 +32,17 @@ public class BlobContainerService {
         com.azure.resourcemanager.storage.models.BlobContainer container = storageAccount
                 .manager()
                 .blobContainers()
-                .defineContainer(crd.getMetadata().getName())
+                .defineContainer(blobContainer.getBlobContainerName())
                 .withExistingStorageAccount(storageAccount)
                 .withPublicAccess(PublicAccess.NONE)
                 .create();
 
-        log.debug("Blob container created: {}", container);
+        log.debug("Blob container created: {}", container.name());
 
-        return BlobContainer.builder()
-                .blobContainerName(container.name())
-                .resourceGroup(storageAccount.resourceGroupName())
-                .storageAccountName(storageAccount.name())
-                .connectionString(storageAccountService.getConnectionString(storageAccount))
-                .build();
+        blobContainer.setConnectionString(storageAccountService.getConnectionString(storageAccount));
+        blobContainer.setStorageAccountName(storageAccount.name());
 
+        return blobContainer;
     }
 
     public Set<BlobContainer> get(BlobContainerCrd crd) {
@@ -56,16 +53,17 @@ public class BlobContainerService {
             StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
             if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
                 log.debug("Storage account for {} is ready", crd.getMetadata().getName());
-                List<ListContainerItemInner> list = storageAccount
+                List<ListContainerItemInner> blobContainers = storageAccount
                         .manager()
                         .blobContainers()
-                        .list(crd.getSpec().getResourceGroup(), storageAccountService.sanitizeStorageAccountName(crd.getMetadata().getName()))
+                        .list(crd.getSpec().getResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
+                                .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream().toList();
 
                 return Collections.singleton(BlobContainer.builder()
                         .storageAccountName(storageAccount.name())
                         .resourceGroup(storageAccount.resourceGroupName())
-                        .blobContainerName(list.isEmpty() ? "" : list.get(0).name())
+                        .blobContainerName(blobContainers.isEmpty() ? "" : blobContainers.get(0).name())
                         .connectionString(storageAccountService.getConnectionString(storageAccount))
                         .build());
             } else {
