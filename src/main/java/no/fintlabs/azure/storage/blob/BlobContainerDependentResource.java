@@ -7,6 +7,7 @@ import no.fintlabs.FlaisWorkflow;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Set;
 
 
@@ -22,6 +23,7 @@ public class BlobContainerDependentResource
                                           BlobContainerService blobContainerService) {
         super(BlobContainer.class, workflow);
         this.blobContainerService = blobContainerService;
+        setPollingPeriod(Duration.ofMinutes(10).toMillis());
     }
 
     @Override

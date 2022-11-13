@@ -31,7 +31,11 @@ public class FileShareService {
                 .manager()
                 .serviceClient()
                 .getFileShares()
-                .create(crd.getSpec().getResourceGroup(), storageAccount.name(), crd.getMetadata().getName(), new FileShareInner());
+                .create(crd.getSpec().getResourceGroup(),
+                        storageAccount.name(),
+                        crd.getMetadata().getName(),
+                        new FileShareInner()
+                );
 
         log.debug("File share created: {}", fileShare.toString());
 
@@ -66,9 +70,5 @@ public class FileShareService {
 
     public void delete(FileShare fileShare) {
         storageAccountService.delete(fileShare);
-    }
-
-    public String getStatus(FileShareCrd crd) {
-        return storageAccountService.getStatus(crd);
     }
 }
