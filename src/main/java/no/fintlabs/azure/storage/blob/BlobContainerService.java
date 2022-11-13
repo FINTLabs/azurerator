@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static no.fintlabs.MetadataUtils.getStorageAccountName;
+
 @Slf4j
 @Service
 public class BlobContainerService {
@@ -59,7 +61,7 @@ public class BlobContainerService {
                 List<ListContainerItemInner> blobContainers = storageAccount
                         .manager()
                         .blobContainers()
-                        .list(azureConfiguration.getStorageAccountResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
+                        .list(azureConfiguration.getStorageAccountResourceGroup(), getStorageAccountName(crd)
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream().toList();
 
