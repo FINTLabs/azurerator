@@ -24,7 +24,7 @@ public class BlobContainerService {
     }
 
 
-    public BlobContainer add(BlobContainerCrd crd) {
+    public BlobContainer add(BlobContainer blobContainer, BlobContainerCrd crd) {
 
         StorageAccount storageAccount = storageAccountService.add(crd);
 
@@ -32,19 +32,22 @@ public class BlobContainerService {
         com.azure.resourcemanager.storage.models.BlobContainer container = storageAccount
                 .manager()
                 .blobContainers()
-                .defineContainer(crd.getMetadata().getName())
+                .defineContainer(blobContainer.getBlobContainerName())
                 .withExistingStorageAccount(storageAccount)
                 .withPublicAccess(PublicAccess.NONE)
                 .create();
 
-        log.debug("Blob container created: {}", container);
+        log.debug("Blob container created: {}", container.name());
 
-        return BlobContainer.builder()
-                .blobContainerName(container.name())
-                .resourceGroup(storageAccount.resourceGroupName())
-                .storageAccountName(storageAccount.name())
-                .connectionString(storageAccountService.getConnectionString(storageAccount))
-                .build();
+        blobContainer.setConnectionString(storageAccountService.getConnectionString(storageAccount));
+
+        return blobContainer;
+//        return BlobContainer.builder()
+//                .blobContainerName(container.name())
+//                .resourceGroup(storageAccount.resourceGroupName())
+//                .storageAccountName(storageAccount.name())
+//                .connectionString(storageAccountService.getConnectionString(storageAccount))
+//                .build();
 
     }
 

@@ -11,9 +11,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@ControllerConfiguration(
-        generationAwareEventProcessing = false
-)
+@ControllerConfiguration
 public class FileShareReconiler extends FlaisReconiler<FileShareCrd, FileShareSpec> {
 
     public FileShareReconiler(FileShareWorkflow workflow,

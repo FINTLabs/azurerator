@@ -4,6 +4,7 @@ import io.javaoperatorsdk.operator.api.reconciler.Context;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisExternalDependentResource;
 import no.fintlabs.FlaisWorkflow;
+import no.fintlabs.azure.AzureConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +20,13 @@ public class BlobContainerDependentResource
 
     private final BlobContainerService blobContainerService;
 
+    private final AzureConfiguration azureConfiguration;
+
     public BlobContainerDependentResource(FlaisWorkflow<BlobContainerCrd, BlobContainerSpec> workflow,
-                                          BlobContainerService blobContainerService) {
+                                          BlobContainerService blobContainerService, AzureConfiguration azureConfiguration) {
         super(BlobContainer.class, workflow);
         this.blobContainerService = blobContainerService;
+        this.azureConfiguration = azureConfiguration;
         setPollingPeriod(Duration.ofMinutes(10).toMillis());
     }
 
@@ -32,8 +36,8 @@ public class BlobContainerDependentResource
         log.debug("\t{}", primary);
 
         return BlobContainer.builder()
-                .blobContainerName(RandomStringUtils.randomAlphabetic(6))
-                .resourceGroup(primary.getSpec().getResourceGroup())
+                .blobContainerName(RandomStringUtils.randomAlphabetic(12).toLowerCase())
+                .resourceGroup(azureConfiguration.getStorageAccountResourceGroup())
                 .storageAccountName(primary.getMetadata().getName())
                 .build();
     }
@@ -47,7 +51,7 @@ public class BlobContainerDependentResource
     @Override
     public BlobContainer create(BlobContainer desired, BlobContainerCrd primary, Context<BlobContainerCrd> context) {
 
-        return blobContainerService.add(primary);
+        return blobContainerService.add(desired, primary);
 
     }
 

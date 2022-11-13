@@ -11,9 +11,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@ControllerConfiguration(
-        generationAwareEventProcessing = true
-)
+@ControllerConfiguration
 public class BlobContainerReconiler extends FlaisReconiler<BlobContainerCrd, BlobContainerSpec> {
     public BlobContainerReconiler(BlobContainerWorkflow workflow,
                                   List<? extends DependentResource<?, BlobContainerCrd>> eventSourceProviders,

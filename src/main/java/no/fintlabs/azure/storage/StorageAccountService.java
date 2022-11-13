@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
 import no.fintlabs.azure.AzureSpec;
 import no.fintlabs.azure.Defaults;
-import no.fintlabs.azure.storage.fileshare.FileShareCrd;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,6 @@ import static no.fintlabs.azure.Defaults.ANNOTATION_STORAGE_ACCOUNT_NAME;
 @Slf4j
 @Service
 public class StorageAccountService {
-
 
 
     private final StorageManager storageManager;
@@ -40,10 +38,10 @@ public class StorageAccountService {
                 .stream()
                 .filter(storageAccount -> storageAccount.resourceGroupName().equals(Defaults.RESOURCE_GROUP))
                 .forEach(storageAccount ->
-                storageAccounts.put(
-                        getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
-                        storageAccount.accountStatuses().primary().name())
-        );
+                        storageAccounts.put(
+                                getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
+                                storageAccount.accountStatuses().primary().name())
+                );
         log.debug("Found {} storage accounts", storageAccounts.size());
     }
 
@@ -71,14 +69,14 @@ public class StorageAccountService {
         return storageAccount;
     }
 
-    public void delete(AzureStorageObject blobContainer) {
-        log.debug("Removing storage account {}", blobContainer.getStorageAccountName());
+    public void delete(AzureStorageObject azureStorageObject) {
+        log.debug("Removing storage account {}", azureStorageObject.getStorageAccountName());
         storageManager
                 .storageAccounts()
-                .deleteByResourceGroup(blobContainer.getResourceGroup(), blobContainer.getStorageAccountName());
+                .deleteByResourceGroup(azureStorageObject.getResourceGroup(), azureStorageObject.getStorageAccountName());
         log.debug("We got {} storage accounts before removing", storageAccounts.size());
-        storageAccounts.remove(getAccountStatusName(blobContainer.getResourceGroup(), blobContainer.getStorageAccountName()));
-        log.debug("Storage account {} removed!", blobContainer.getStorageAccountName());
+        storageAccounts.remove(getAccountStatusName(azureStorageObject.getResourceGroup(), azureStorageObject.getStorageAccountName()));
+        log.debug("Storage account {} removed!", azureStorageObject.getStorageAccountName());
         log.debug("We got {} storage accounts after removing", storageAccounts.size());
     }
 
@@ -93,21 +91,21 @@ public class StorageAccountService {
         }
 
         if (storageAccounts.containsKey(getAccountStatusName(primaryResource.getSpec().getResourceGroup(), storageAccountName.get()))) {
-            log.debug("Fetching Azure blob container for {}...", getStorageAccountNameFromAnnotation(primaryResource));
+            log.debug("Fetching Azure Storage Account {} ...", getStorageAccountNameFromAnnotation(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()
                     .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
                             storageAccountName.get())
-                    );
+            );
         }
 
         return Optional.empty();
 
     }
 
-    public String getStatus(FileShareCrd crd) {
-        return storageAccounts.get(getAccountStatusName(crd.getSpec().getResourceGroup(), crd.getMetadata().getName()));
-    }
+//    public String getStatus(FileShareCrd crd) {
+//        return storageAccounts.get(getAccountStatusName(crd.getSpec().getResourceGroup(), crd.getMetadata().getName()));
+//    }
 
     public String getConnectionString(StorageAccount storageAccount) {
         return String.format(

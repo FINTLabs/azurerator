@@ -37,7 +37,7 @@ public class FileShareService {
                         new FileShareInner()
                 );
 
-        log.debug("File share created: {}", fileShare.toString());
+        log.debug("File share created: {}", fileShare.name());
 
         return FileShare.builder()
                 .resourceGroup(storageAccount.resourceGroupName())
