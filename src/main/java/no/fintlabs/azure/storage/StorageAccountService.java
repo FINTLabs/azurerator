@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static no.fintlabs.azure.Defaults.ANNOTATION_STORAGE_ACCOUNT_NAME;
+import static no.fintlabs.MetadataUtils.*;
 
 @Slf4j
 @Service
@@ -62,11 +62,15 @@ public class StorageAccountService {
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
                 .withAccessFromAzureServices()
                 .disableBlobPublicAccess()
+                .withTag("org-id", getOrgId(crd).orElse("N/A"))
+                .withTag("team", getTeam(crd).orElse("N/A"))
                 .create();
+
         storageAccounts.put(
                 getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
                 storageAccount.accountStatuses().primary().name()
         );
+
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
         log.debug("We got {} storage accounts after adding a new one", storageAccounts.size());
@@ -89,14 +93,14 @@ public class StorageAccountService {
 
         log.debug("Check if Azure Storage Account for resource {} exists", primaryResource.getMetadata().getName());
 
-        Optional<String> storageAccountName = getStorageAccountNameFromAnnotation(primaryResource);
+        Optional<String> storageAccountName = getStorageAccountName(primaryResource);
 
         if (storageAccountName.isEmpty()) {
             return Optional.empty();
         }
 
         if (storageAccounts.containsKey(getAccountStatusName(azureConfiguration.getStorageAccountResourceGroup(), storageAccountName.get()))) {
-            log.debug("Fetching Azure Storage Account {} ...", getStorageAccountNameFromAnnotation(primaryResource).orElse("N/A"));
+            log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()
                     .getByResourceGroup(azureConfiguration.getStorageAccountResourceGroup(),
@@ -138,9 +142,9 @@ public class StorageAccountService {
         return name;
     }
 
-    public Optional<String> getStorageAccountNameFromAnnotation(FlaisCrd<? extends AzureSpec> primaryResource) {
-        return Optional.ofNullable(primaryResource.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
-    }
+//    public Optional<String> getStorageAccountNameFromAnnotation(FlaisCrd<? extends AzureSpec> primaryResource) {
+//        return Optional.ofNullable(primaryResource.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
+//    }
 
     private String getAccountStatusName(String resourceGroup, String name) {
         return String.format("%s/%s",
