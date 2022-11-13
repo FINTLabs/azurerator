@@ -7,8 +7,8 @@ import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
+import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.AzureSpec;
-import no.fintlabs.azure.Defaults;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
@@ -29,15 +29,18 @@ public class StorageAccountService {
     // TODO: 13/11/2022 Move this to a repository
     private final Map<String, String> storageAccounts = new HashMap<>();
 
-    public StorageAccountService(StorageManager storageManager) {
+    private final AzureConfiguration azureConfiguration;
+
+    public StorageAccountService(StorageManager storageManager, AzureConfiguration azureConfiguration) {
         this.storageManager = storageManager;
+        this.azureConfiguration = azureConfiguration;
     }
 
     @PostConstruct
     public void init() {
         storageManager.storageAccounts().list()
                 .stream()
-                .filter(storageAccount -> storageAccount.resourceGroupName().equals(Defaults.RESOURCE_GROUP))
+                .filter(storageAccount -> storageAccount.resourceGroupName().equals(azureConfiguration.getStorageAccountResourceGroup()))
                 .forEach(storageAccount ->
                         storageAccounts.put(
                                 getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
@@ -54,7 +57,7 @@ public class StorageAccountService {
         StorageAccount storageAccount = storageManager.storageAccounts()
                 .define(accountName)
                 .withRegion(Region.NORWAY_EAST)
-                .withExistingResourceGroup(crd.getSpec().getResourceGroup())
+                .withExistingResourceGroup(azureConfiguration.getStorageAccountResourceGroup())
                 .withGeneralPurposeAccountKindV2()
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
                 .withAccessFromAzureServices()
@@ -92,11 +95,11 @@ public class StorageAccountService {
             return Optional.empty();
         }
 
-        if (storageAccounts.containsKey(getAccountStatusName(primaryResource.getSpec().getResourceGroup(), storageAccountName.get()))) {
+        if (storageAccounts.containsKey(getAccountStatusName(azureConfiguration.getStorageAccountResourceGroup(), storageAccountName.get()))) {
             log.debug("Fetching Azure Storage Account {} ...", getStorageAccountNameFromAnnotation(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()
-                    .getByResourceGroup(primaryResource.getSpec().getResourceGroup(),
+                    .getByResourceGroup(azureConfiguration.getStorageAccountResourceGroup(),
                             storageAccountName.get())
             );
         }

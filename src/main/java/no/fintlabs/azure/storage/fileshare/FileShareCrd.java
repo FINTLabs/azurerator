@@ -10,11 +10,4 @@ import no.fintlabs.FlaisCrd;
 @Version("v1alpha1")
 @Kind("AzureFileShare")
 public class FileShareCrd extends FlaisCrd<FileShareSpec> implements Namespaced {
-
-    @Override
-    protected FileShareSpec initSpec() {
-        return new FileShareSpec();
-    }
-
-
 }

@@ -5,6 +5,7 @@ import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.storage.StorageAccountService;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +19,11 @@ public class BlobContainerService {
 
 
     private final StorageAccountService storageAccountService;
+    private final AzureConfiguration azureConfiguration;
 
-    public BlobContainerService(StorageAccountService storageAccountService) {
+    public BlobContainerService(StorageAccountService storageAccountService, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
+        this.azureConfiguration = azureConfiguration;
     }
 
 
@@ -56,7 +59,7 @@ public class BlobContainerService {
                 List<ListContainerItemInner> blobContainers = storageAccount
                         .manager()
                         .blobContainers()
-                        .list(crd.getSpec().getResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
+                        .list(azureConfiguration.getStorageAccountResourceGroup(), storageAccountService.getStorageAccountNameFromAnnotation(crd)
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream().toList();
 
