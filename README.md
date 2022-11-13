@@ -5,15 +5,14 @@
 * [What does the operator do?](#what-does-the-operator-do)
 * [Usage](#usage)
   * [AzureBlobContainer](#azureblobcontainer)
-    * [Specification parameters](#specification-parameters)
     * [Secret properties](#secret-properties)
   * [AzureFileShare](#azurefileshare)
-    * [Specification parameters](#specification-parameters)
     * [Secret properties](#secret-properties)
 * [Setup](#setup)
   * [1. Create a SP in Azure:](#1-create-a-sp-in-azure-)
   * [2. The above command will give you this output:](#2-the-above-command-will-give-you-this-output-)
   * [3. Run the kustomize](#3-run-the-kustomize)
+  * [Properties](#properties)
 <!-- TOC -->
 
 This operator provides the ability integrate Azure with Kubernetes.
