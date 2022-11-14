@@ -30,6 +30,9 @@ public class StorageAccountRepository {
         loadStorageAccounts();
     }
 
+    public Map<String, String> getAll() {
+        return storageAccounts;
+    }
     public void add(StorageAccount storageAccount) {
         storageAccounts.put(
                 getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
@@ -49,7 +52,8 @@ public class StorageAccountRepository {
         return storageAccounts.size();
     }
     private void loadStorageAccounts() {
-        storageManager.storageAccounts().list()
+        storageManager.storageAccounts()
+                .list()
                 .stream()
                 .filter(storageAccount -> storageAccount.resourceGroupName().equals(azureConfiguration.getStorageAccountResourceGroup()))
                 .forEach(storageAccount ->
