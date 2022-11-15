@@ -7,9 +7,9 @@ import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureConfiguration;
-import no.fintlabs.azure.storage.AzureStorageObject;
-import no.fintlabs.azure.storage.StorageAccountRepository;
 import no.fintlabs.azure.storage.StorageAccountService;
+import no.fintlabs.azure.storage.StorageResource;
+import no.fintlabs.azure.storage.StorageResourceRepository;
 import no.fintlabs.azure.storage.StorageType;
 import org.springframework.stereotype.Service;
 
@@ -25,17 +25,17 @@ public class BlobContainerService {
 
 
     private final StorageAccountService storageAccountService;
-    private final StorageAccountRepository storageAccountRepository;
+    private final StorageResourceRepository storageResourceRepository;
     private final AzureConfiguration azureConfiguration;
 
-    public BlobContainerService(StorageAccountService storageAccountService, StorageAccountRepository storageAccountRepository, AzureConfiguration azureConfiguration) {
+    public BlobContainerService(StorageAccountService storageAccountService, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
-        this.storageAccountRepository = storageAccountRepository;
+        this.storageResourceRepository = storageResourceRepository;
         this.azureConfiguration = azureConfiguration;
     }
 
 
-    public AzureStorageObject add(AzureStorageObject desired, BlobContainerCrd crd) {
+    public StorageResource add(StorageResource desired, BlobContainerCrd crd) {
 
         StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.BLOB_CONTAINER);
 
@@ -50,10 +50,10 @@ public class BlobContainerService {
 
         log.debug("Blob container created: {}", container.name());
 
-        return AzureStorageObject.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER);
+        return StorageResource.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER);
     }
 
-    public Set<AzureStorageObject> get(BlobContainerCrd crd) {
+    public Set<StorageResource> get(BlobContainerCrd crd) {
 
 
         if (storageAccountService.getStorageAccount(crd).isPresent()) {
@@ -68,16 +68,11 @@ public class BlobContainerService {
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream().toList();
 
-                AzureStorageObject azureStorageObject = AzureStorageObject.of(storageAccount, blobContainers.isEmpty() ? "" : blobContainers.get(0).name(), StorageType.BLOB_CONTAINER);
-                storageAccountRepository.update(azureStorageObject);
+                StorageResource storageResource = StorageResource.of(storageAccount, blobContainers.isEmpty() ? "" : blobContainers.get(0).name(), StorageType.BLOB_CONTAINER);
+                storageResourceRepository.update(storageResource);
 
-                return Collections.singleton(azureStorageObject);
-//                        Collections.singleton(BlobContainer.builder()
-//                        .storageAccountName(storageAccount.name())
-//                        .resourceGroup(storageAccount.resourceGroupName())
-//                        .blobContainerName(blobContainers.isEmpty() ? "" : blobContainers.get(0).name())
-//                        .connectionString(storageAccountService.getConnectionString(storageAccount))
-//                        .build());
+                return Collections.singleton(storageResource);
+
             } else {
                 log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
                 return Collections.emptySet();
@@ -87,7 +82,7 @@ public class BlobContainerService {
 
     }
 
-    public void delete(AzureStorageObject blobContainer) {
+    public void delete(StorageResource blobContainer) {
         storageAccountService.delete(blobContainer);
     }
 }

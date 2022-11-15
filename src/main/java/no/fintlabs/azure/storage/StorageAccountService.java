@@ -24,13 +24,13 @@ public class StorageAccountService {
 
     private final StorageManager storageManager;
 
-    private final StorageAccountRepository storageAccountRepository;
+    private final StorageResourceRepository storageResourceRepository;
 
     private final AzureConfiguration azureConfiguration;
 
-    public StorageAccountService(StorageManager storageManager, StorageAccountRepository storageAccountRepository, AzureConfiguration azureConfiguration) {
+    public StorageAccountService(StorageManager storageManager, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageManager = storageManager;
-        this.storageAccountRepository = storageAccountRepository;
+        this.storageResourceRepository = storageResourceRepository;
         this.azureConfiguration = azureConfiguration;
     }
 
@@ -54,24 +54,24 @@ public class StorageAccountService {
                 .withTag(TAG_TYPE, type.name())
                 .create();
 
-        storageAccountRepository.add(AzureStorageObject.of(storageAccount, path, type));
+        storageResourceRepository.add(StorageResource.of(storageAccount, path, type));
 
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
-        log.debug("We got {} storage accounts after adding a new one", storageAccountRepository.size());
+        log.debug("We got {} storage accounts after adding a new one", storageResourceRepository.size());
 
         return storageAccount;
     }
 
-    public void delete(AzureStorageObject azureStorageObject) {
-        log.debug("Removing storage account {}", azureStorageObject.getStorageAccountName());
+    public void delete(StorageResource storageResource) {
+        log.debug("Removing storage account {}", storageResource.getStorageAccountName());
         storageManager
                 .storageAccounts()
-                .deleteByResourceGroup(azureStorageObject.getResourceGroup(), azureStorageObject.getStorageAccountName());
-        log.debug("We got {} storage accounts before removing", storageAccountRepository.size());
-        storageAccountRepository.remove(azureStorageObject);
-        log.debug("Storage account {} removed!", azureStorageObject.getStorageAccountName());
-        log.debug("We got {} storage accounts after removing", storageAccountRepository.size());
+                .deleteByResourceGroup(storageResource.getResourceGroup(), storageResource.getStorageAccountName());
+        log.debug("We got {} storage accounts before removing", storageResourceRepository.size());
+        storageResourceRepository.remove(storageResource);
+        log.debug("Storage account {} removed!", storageResource.getStorageAccountName());
+        log.debug("We got {} storage accounts after removing", storageResourceRepository.size());
     }
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
@@ -84,7 +84,7 @@ public class StorageAccountService {
             return Optional.empty();
         }
 
-        if (storageAccountRepository.exists(storageAccountName.get())) {
+        if (storageResourceRepository.exists(storageAccountName.get())) {
             log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()

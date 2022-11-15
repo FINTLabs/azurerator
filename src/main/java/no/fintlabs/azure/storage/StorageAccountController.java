@@ -11,14 +11,14 @@ import java.util.Collection;
 @RequestMapping("api/flais/operators/azurerator")
 public class StorageAccountController {
 
-    private final StorageAccountRepository storageAccountRepository;
+    private final StorageResourceRepository storageResourceRepository;
 
-    public StorageAccountController(StorageAccountRepository storageAccountRepository) {
-        this.storageAccountRepository = storageAccountRepository;
+    public StorageAccountController(StorageResourceRepository storageResourceRepository) {
+        this.storageResourceRepository = storageResourceRepository;
     }
 
     @GetMapping("storage-accounts")
-    public Mono<Collection<AzureStorageObject>> getStorageAccounts() {
-        return Mono.justOrEmpty(storageAccountRepository.getAll());
+    public Mono<Collection<StorageResource>> getStorageAccounts() {
+        return Mono.justOrEmpty(storageResourceRepository.getAll());
     }
 }

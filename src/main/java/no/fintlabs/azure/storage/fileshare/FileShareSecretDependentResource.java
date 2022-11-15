@@ -9,7 +9,7 @@ import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDep
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisKubernetesDependentResource;
 import no.fintlabs.FlaisWorkflow;
-import no.fintlabs.azure.storage.AzureStorageObject;
+import no.fintlabs.azure.storage.StorageResource;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
@@ -32,8 +32,8 @@ public class FileShareSecretDependentResource extends FlaisKubernetesDependentRe
 
         log.debug("Desired secret for {}", resource.getMetadata().getName());
 
-        Optional<AzureStorageObject> fileShare = context.getSecondaryResource(AzureStorageObject.class);
-        AzureStorageObject azureFileShare = fileShare.orElseThrow();
+        Optional<StorageResource> fileShare = context.getSecondaryResource(StorageResource.class);
+        StorageResource azureFileShare = fileShare.orElseThrow();
 
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 

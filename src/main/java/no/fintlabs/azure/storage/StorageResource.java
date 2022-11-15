@@ -18,7 +18,7 @@ import static no.fintlabs.azure.TagNames.TAG_TEAM;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AzureStorageObject {
+public class StorageResource {
 
     protected String storageAccountName;
     protected String resourceGroup;
@@ -32,19 +32,19 @@ public class AzureStorageObject {
     protected StorageType type;
 
 
-    public static AzureStorageObject desired() {
-        return AzureStorageObject.builder()
+    public static StorageResource desired() {
+        return StorageResource.builder()
                 .path(RandomStringUtils.randomAlphabetic(12).toLowerCase())
                 .build();
     }
 
-    public static AzureStorageObject of(StorageAccount storageAccount) {
+    public static StorageResource of(StorageAccount storageAccount) {
         return of(storageAccount, null, StorageType.UNKNOWN);
     }
 
-    public static AzureStorageObject of(StorageAccount storageAccount, String path, StorageType type) {
+    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type) {
 
-        return AzureStorageObject.builder()
+        return StorageResource.builder()
                 .storageAccountName(storageAccount.name())
                 .resourceGroup(storageAccount.resourceGroupName())
                 .connectionString(buildConnectionString(storageAccount))
@@ -72,9 +72,17 @@ public class AzureStorageObject {
 
     @Override
     public String toString() {
-        return "AzureBlobContainer{" +
+        return "StorageResource{" +
                 "storageAccountName='" + storageAccountName + '\'' +
                 ", resourceGroup='" + resourceGroup + '\'' +
+                ", connectionString='" + connectionString + '\'' +
+                ", status='" + status + '\'' +
+                ", team='" + team + '\'' +
+                ", orgId='" + orgId + '\'' +
+                ", portalUri='" + portalUri + '\'' +
+                ", environment='" + environment + '\'' +
+                ", path='" + path + '\'' +
+                ", type=" + type +
                 '}';
     }
 }

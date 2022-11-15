@@ -8,7 +8,7 @@ import io.javaoperatorsdk.operator.processing.dependent.Matcher;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDependent;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisKubernetesDependentResource;
-import no.fintlabs.azure.storage.AzureStorageObject;
+import no.fintlabs.azure.storage.StorageResource;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
@@ -31,7 +31,7 @@ public class BlobContainerSecretDependentResource extends FlaisKubernetesDepende
 
         log.debug("Desired secret for {}", resource.getMetadata().getName());
 
-        AzureStorageObject azureBlobContainer = context.getSecondaryResource(AzureStorageObject.class).orElseThrow();
+        StorageResource azureBlobContainer = context.getSecondaryResource(StorageResource.class).orElseThrow();
 
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
