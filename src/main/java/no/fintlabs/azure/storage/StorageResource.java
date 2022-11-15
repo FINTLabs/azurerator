@@ -10,8 +10,7 @@ import no.fintlabs.EnvironmentService;
 import no.fintlabs.SpringContext;
 import org.apache.commons.lang3.RandomStringUtils;
 
-import static no.fintlabs.azure.TagNames.TAG_ORG_ID;
-import static no.fintlabs.azure.TagNames.TAG_TEAM;
+import static no.fintlabs.azure.TagNames.*;
 
 @Getter
 @Setter
@@ -20,16 +19,20 @@ import static no.fintlabs.azure.TagNames.TAG_TEAM;
 @AllArgsConstructor
 public class StorageResource {
 
-    protected String storageAccountName;
-    protected String resourceGroup;
-    protected String connectionString;
-    protected String status;
-    protected String team;
-    protected String orgId;
-    protected String portalUri;
-    protected String environment;
-    protected String path;
-    protected StorageType type;
+    private String storageAccountName;
+    private String resourceGroup;
+    private String connectionString;
+    private String status;
+    private String team;
+    private String orgId;
+    private String portalUri;
+    private String environment;
+    private String path;
+    private StorageType type;
+    private String crdName;
+    private String crdNamespace;
+    private String instance;
+    private String partOf;
 
 
     public static StorageResource desired() {
@@ -49,8 +52,12 @@ public class StorageResource {
                 .resourceGroup(storageAccount.resourceGroupName())
                 .connectionString(buildConnectionString(storageAccount))
                 .status(storageAccount.accountStatuses().primary().name())
-                .team(storageAccount.tags().getOrDefault(TAG_TEAM, "N/A"))
-                .orgId(storageAccount.tags().getOrDefault(TAG_ORG_ID, "N/A"))
+                .team(storageAccount.tags().getOrDefault(TAG_TEAM, TAG_DEFAULT_VALUE))
+                .orgId(storageAccount.tags().getOrDefault(TAG_ORG_ID, TAG_DEFAULT_VALUE))
+                .crdName(storageAccount.tags().getOrDefault(TAG_CRD_NAME, TAG_DEFAULT_VALUE))
+                .crdNamespace(storageAccount.tags().getOrDefault(TAG_CRD_NAMESPACE, TAG_DEFAULT_VALUE))
+                .partOf(storageAccount.tags().getOrDefault(TAG_PART_OF, TAG_DEFAULT_VALUE))
+                .instance(storageAccount.tags().getOrDefault(TAG_INSTANCE, TAG_DEFAULT_VALUE))
                 .portalUri(buildPortalUri(storageAccount))
                 .environment(SpringContext.getBean(EnvironmentService.class).getEnvironment())
                 .path(path)

@@ -3,7 +3,7 @@ kind: AzureFileShare
 metadata:
   name: fint-file-share-test
   labels:
-    app.kubernetes.io/name: arkiv-adapter
+    app.kubernetes.io/name: arkiv-adapter1
     app.kubernetes.io/instance: arkiv-adapter_rogfk_no
     app.kubernetes.io/version: latest
     app.kubernetes.io/component: adapter
