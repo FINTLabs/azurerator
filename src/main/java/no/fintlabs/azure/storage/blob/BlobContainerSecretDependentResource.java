@@ -8,11 +8,11 @@ import io.javaoperatorsdk.operator.processing.dependent.Matcher;
 import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDependent;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisKubernetesDependentResource;
+import no.fintlabs.azure.storage.AzureStorageObject;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Optional;
 
 @Slf4j
 @Component
@@ -31,8 +31,7 @@ public class BlobContainerSecretDependentResource extends FlaisKubernetesDepende
 
         log.debug("Desired secret for {}", resource.getMetadata().getName());
 
-        Optional<BlobContainer> blobContainer = context.getSecondaryResource(BlobContainer.class);
-        BlobContainer azureBlobContainer = blobContainer.orElseThrow();
+        AzureStorageObject azureBlobContainer = context.getSecondaryResource(AzureStorageObject.class).orElseThrow();
 
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
@@ -44,7 +43,7 @@ public class BlobContainerSecretDependentResource extends FlaisKubernetesDepende
                 .withLabels(labels).endMetadata()
                 .withType("Opaque")
                 .addToData("fint.azure.storage-account.connection-string", encode(azureBlobContainer.getConnectionString()))
-                .addToData("fint.azure.storage.container-blob.name", encode((azureBlobContainer.getBlobContainerName())))
+                .addToData("fint.azure.storage.container-blob.name", encode((azureBlobContainer.getPath())))
                 .build();
 
 

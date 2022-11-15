@@ -1,12 +1,16 @@
 package no.fintlabs.azure.storage.blob;
 
 import com.azure.resourcemanager.storage.fluent.models.ListContainerItemInner;
+import com.azure.resourcemanager.storage.models.BlobContainer;
 import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.PublicAccess;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureConfiguration;
+import no.fintlabs.azure.storage.AzureStorageObject;
+import no.fintlabs.azure.storage.StorageAccountRepository;
 import no.fintlabs.azure.storage.StorageAccountService;
+import no.fintlabs.azure.storage.StorageType;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -21,36 +25,35 @@ public class BlobContainerService {
 
 
     private final StorageAccountService storageAccountService;
+    private final StorageAccountRepository storageAccountRepository;
     private final AzureConfiguration azureConfiguration;
 
-    public BlobContainerService(StorageAccountService storageAccountService, AzureConfiguration azureConfiguration) {
+    public BlobContainerService(StorageAccountService storageAccountService, StorageAccountRepository storageAccountRepository, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
+        this.storageAccountRepository = storageAccountRepository;
         this.azureConfiguration = azureConfiguration;
     }
 
 
-    public BlobContainer add(BlobContainer blobContainer, BlobContainerCrd crd) {
+    public AzureStorageObject add(AzureStorageObject desired, BlobContainerCrd crd) {
 
-        StorageAccount storageAccount = storageAccountService.add(crd);
+        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.BLOB_CONTAINER);
 
         log.debug("Creating blob container...");
-        com.azure.resourcemanager.storage.models.BlobContainer container = storageAccount
+        BlobContainer container = storageAccount
                 .manager()
                 .blobContainers()
-                .defineContainer(blobContainer.getBlobContainerName())
+                .defineContainer(desired.getPath())
                 .withExistingStorageAccount(storageAccount)
                 .withPublicAccess(PublicAccess.NONE)
                 .create();
 
         log.debug("Blob container created: {}", container.name());
 
-        blobContainer.setConnectionString(storageAccountService.getConnectionString(storageAccount));
-        blobContainer.setStorageAccountName(storageAccount.name());
-
-        return blobContainer;
+        return AzureStorageObject.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER);
     }
 
-    public Set<BlobContainer> get(BlobContainerCrd crd) {
+    public Set<AzureStorageObject> get(BlobContainerCrd crd) {
 
 
         if (storageAccountService.getStorageAccount(crd).isPresent()) {
@@ -65,12 +68,16 @@ public class BlobContainerService {
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream().toList();
 
-                return Collections.singleton(BlobContainer.builder()
-                        .storageAccountName(storageAccount.name())
-                        .resourceGroup(storageAccount.resourceGroupName())
-                        .blobContainerName(blobContainers.isEmpty() ? "" : blobContainers.get(0).name())
-                        .connectionString(storageAccountService.getConnectionString(storageAccount))
-                        .build());
+                AzureStorageObject azureStorageObject = AzureStorageObject.of(storageAccount, blobContainers.isEmpty() ? "" : blobContainers.get(0).name(), StorageType.BLOB_CONTAINER);
+                storageAccountRepository.update(azureStorageObject);
+
+                return Collections.singleton(azureStorageObject);
+//                        Collections.singleton(BlobContainer.builder()
+//                        .storageAccountName(storageAccount.name())
+//                        .resourceGroup(storageAccount.resourceGroupName())
+//                        .blobContainerName(blobContainers.isEmpty() ? "" : blobContainers.get(0).name())
+//                        .connectionString(storageAccountService.getConnectionString(storageAccount))
+//                        .build());
             } else {
                 log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
                 return Collections.emptySet();
@@ -80,7 +87,7 @@ public class BlobContainerService {
 
     }
 
-    public void delete(BlobContainer blobContainer) {
+    public void delete(AzureStorageObject blobContainer) {
         storageAccountService.delete(blobContainer);
     }
 }

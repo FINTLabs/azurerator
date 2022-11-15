@@ -77,7 +77,6 @@ public class FileShareService {
                                 StorageType.FILE_SHARE
                         );
 
-                //storageAccountService.updateCache(azureStorageObject);
                 storageAccountRepository.update(azureStorageObject);
 
                 return Collections.singleton(azureStorageObject);

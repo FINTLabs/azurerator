@@ -63,10 +63,6 @@ public class StorageAccountService {
         return storageAccount;
     }
 
-//    public void updateCache(AzureStorageObject azureStorageObject) {
-//        storageAccountRepository.update(azureStorageObject);
-//    }
-
     public void delete(AzureStorageObject azureStorageObject) {
         log.debug("Removing storage account {}", azureStorageObject.getStorageAccountName());
         storageManager
@@ -99,14 +95,6 @@ public class StorageAccountService {
 
         return Optional.empty();
 
-    }
-
-    public String getConnectionString(StorageAccount storageAccount) {
-        return String.format(
-                "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net",
-                storageAccount.name(),
-                storageAccount.getKeys().get(0).value()
-        );
     }
 
     public String generateStorageAccountName() {
