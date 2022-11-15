@@ -12,7 +12,8 @@ public class EnvironmentService {
     private final KubernetesClient kubernetesClient;
 
     @Getter
-    private String environment;
+    private static String environment;
+
 
 
     public EnvironmentService(KubernetesClient kubernetesClient) {
@@ -21,6 +22,7 @@ public class EnvironmentService {
 
     @PostConstruct
     public void init() {
+
         environment = kubernetesClient.getConfiguration().getCurrentContext().getName();
     }
 }
