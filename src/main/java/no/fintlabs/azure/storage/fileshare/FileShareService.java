@@ -7,6 +7,7 @@ import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.storage.AzureStorageObject;
+import no.fintlabs.azure.storage.StorageAccountRepository;
 import no.fintlabs.azure.storage.StorageAccountService;
 import no.fintlabs.azure.storage.StorageType;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,12 @@ public class FileShareService {
 
 
     private final StorageAccountService storageAccountService;
+    private final StorageAccountRepository storageAccountRepository;
     private final AzureConfiguration azureConfiguration;
 
-    public FileShareService(StorageAccountService storageAccountService, AzureConfiguration azureConfiguration) {
+    public FileShareService(StorageAccountService storageAccountService, StorageAccountRepository storageAccountRepository, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
+        this.storageAccountRepository = storageAccountRepository;
         this.azureConfiguration = azureConfiguration;
     }
 
@@ -74,7 +77,8 @@ public class FileShareService {
                                 StorageType.FILE_SHARE
                         );
 
-                storageAccountService.updateCache(azureStorageObject);
+                //storageAccountService.updateCache(azureStorageObject);
+                storageAccountRepository.update(azureStorageObject);
 
                 return Collections.singleton(azureStorageObject);
 

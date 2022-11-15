@@ -63,9 +63,9 @@ public class StorageAccountService {
         return storageAccount;
     }
 
-    public void updateCache(AzureStorageObject azureStorageObject) {
-        storageAccountRepository.update(azureStorageObject);
-    }
+//    public void updateCache(AzureStorageObject azureStorageObject) {
+//        storageAccountRepository.update(azureStorageObject);
+//    }
 
     public void delete(AzureStorageObject azureStorageObject) {
         log.debug("Removing storage account {}", azureStorageObject.getStorageAccountName());
