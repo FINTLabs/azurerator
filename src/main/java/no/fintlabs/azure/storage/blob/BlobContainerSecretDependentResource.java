@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-@KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=flaiserator")
+@KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=azurerator")
 public class BlobContainerSecretDependentResource extends FlaisKubernetesDependentResource<Secret, BlobContainerCrd, BlobContainerSpec> {
 
     public BlobContainerSecretDependentResource(BlobContainerWorkflow workflow, BlobContainerDependentResource blobContainerDependentResource, KubernetesClient kubernetesClient) {

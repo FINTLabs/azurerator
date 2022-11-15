@@ -15,8 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 import static no.fintlabs.MetadataUtils.*;
-import static no.fintlabs.azure.TagNames.TAG_ORG_ID;
-import static no.fintlabs.azure.TagNames.TAG_TEAM;
+import static no.fintlabs.azure.TagNames.*;
 
 @Slf4j
 @Service
@@ -36,6 +35,9 @@ public class StorageAccountService {
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
+        return add(crd, null, StorageType.UNKNOWN);
+    }
+    public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type) {
 
         String accountName = generateStorageAccountName();
         log.debug("Creating storage account with name: {}", accountName);
@@ -49,15 +51,20 @@ public class StorageAccountService {
                 .disableBlobPublicAccess()
                 .withTag(TAG_ORG_ID, getOrgId(crd).orElse("N/A"))
                 .withTag(TAG_TEAM, getTeam(crd).orElse("N/A"))
+                .withTag(TAG_TYPE, type.name())
                 .create();
 
-        storageAccountRepository.add(AzureStorageObject.of(storageAccount));
+        storageAccountRepository.add(AzureStorageObject.of(storageAccount, path, type));
 
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
         log.debug("We got {} storage accounts after adding a new one", storageAccountRepository.size());
 
         return storageAccount;
+    }
+
+    public void updateCache(AzureStorageObject azureStorageObject) {
+        storageAccountRepository.update(azureStorageObject);
     }
 
     public void delete(AzureStorageObject azureStorageObject) {

@@ -6,7 +6,9 @@ import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureConfiguration;
+import no.fintlabs.azure.storage.AzureStorageObject;
 import no.fintlabs.azure.storage.StorageAccountService;
+import no.fintlabs.azure.storage.StorageType;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -29,9 +31,9 @@ public class FileShareService {
     }
 
 
-    public FileShare add(FileShare desired, FileShareCrd crd) {
+    public AzureStorageObject add(AzureStorageObject desired, FileShareCrd crd) {
 
-        StorageAccount storageAccount = storageAccountService.add(crd);
+        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.FILE_SHARE);
 
         log.debug("Creating file share...");
         FileShareInner fileShare = storageAccount
@@ -40,19 +42,16 @@ public class FileShareService {
                 .getFileShares()
                 .create(azureConfiguration.getStorageAccountResourceGroup(),
                         storageAccount.name(),
-                        desired.getShareName(),
+                        desired.getPath(),
                         new FileShareInner()
                 );
 
         log.debug("File share created: {}", fileShare.name());
 
-        desired.setConnectionString(storageAccountService.getConnectionString(storageAccount));
-        desired.setStorageAccountName(storageAccount.name());
-
-        return desired;
+        return AzureStorageObject.of(storageAccount, desired.getPath(), StorageType.FILE_SHARE);
     }
 
-    public Set<FileShare> get(FileShareCrd crd) {
+    public Set<AzureStorageObject> get(FileShareCrd crd) {
 
         if (storageAccountService.getStorageAccount(crd).isPresent()) {
 
@@ -68,12 +67,17 @@ public class FileShareService {
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream()
                         .toList();
-                return Collections.singleton(FileShare.builder()
-                        .storageAccountName(storageAccount.name())
-                        .resourceGroup(storageAccount.resourceGroupName())
-                                .shareName(fileShares.isEmpty() ? "" : fileShares.get(0).name())
-                        .connectionString(storageAccountService.getConnectionString(storageAccount))
-                        .build());
+
+                AzureStorageObject azureStorageObject =
+                        AzureStorageObject.of(
+                                storageAccount, fileShares.isEmpty() ? "" : fileShares.get(0).name(),
+                                StorageType.FILE_SHARE
+                        );
+
+                storageAccountService.updateCache(azureStorageObject);
+
+                return Collections.singleton(azureStorageObject);
+
             } else {
                 log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
                 return Collections.emptySet();
@@ -82,7 +86,7 @@ public class FileShareService {
         return Collections.emptySet();
     }
 
-    public void delete(FileShare fileShare) {
-        storageAccountService.delete(fileShare);
+    public void delete(AzureStorageObject azureStorageObject) {
+        storageAccountService.delete(azureStorageObject);
     }
 }

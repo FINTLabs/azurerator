@@ -37,8 +37,6 @@ public class StorageAccountRepository {
     public void add(AzureStorageObject azureStorageObject) {
 
         storageAccounts.put(
-                //getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
-                //storageAccount.accountStatuses().primary().name()
                 azureStorageObject.getStorageAccountName(),
                 azureStorageObject
         );
@@ -50,6 +48,10 @@ public class StorageAccountRepository {
 
     public boolean exists(String storageAccountName) {
         return storageAccounts.containsKey(storageAccountName);
+    }
+
+    public void update(AzureStorageObject azureStorageObject) {
+        storageAccounts.put(azureStorageObject.getStorageAccountName(), azureStorageObject);
     }
 
     public long size() {
@@ -66,11 +68,4 @@ public class StorageAccountRepository {
         log.debug("Found {} storage accounts:", storageAccounts.size());
         storageAccounts.forEach((name, status) -> log.debug("{} -> {}", name, status));
     }
-
-//    private String getAccountStatusName(String resourceGroup, String name) {
-//        return String.format("%s/%s",
-//                resourceGroup,
-//                name);
-//    }
-
 }
