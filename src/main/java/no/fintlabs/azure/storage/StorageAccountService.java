@@ -12,12 +12,10 @@ import no.fintlabs.azure.AzureSpec;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static no.fintlabs.MetadataUtils.*;
+import static no.fintlabs.azure.TagNames.*;
 
 @Slf4j
 @Service
@@ -26,31 +24,20 @@ public class StorageAccountService {
 
     private final StorageManager storageManager;
 
-    // TODO: 13/11/2022 Move this to a repository
-    private final Map<String, String> storageAccounts = new HashMap<>();
+    private final StorageResourceRepository storageResourceRepository;
 
     private final AzureConfiguration azureConfiguration;
 
-    public StorageAccountService(StorageManager storageManager, AzureConfiguration azureConfiguration) {
+    public StorageAccountService(StorageManager storageManager, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageManager = storageManager;
+        this.storageResourceRepository = storageResourceRepository;
         this.azureConfiguration = azureConfiguration;
     }
 
-    @PostConstruct
-    public void init() {
-        storageManager.storageAccounts().list()
-                .stream()
-                .filter(storageAccount -> storageAccount.resourceGroupName().equals(azureConfiguration.getStorageAccountResourceGroup()))
-                .forEach(storageAccount ->
-                        storageAccounts.put(
-                                getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
-                                storageAccount.accountStatuses().primary().name())
-                );
-        log.debug("Found {} storage accounts:", storageAccounts.size());
-        storageAccounts.forEach((name, status) -> log.debug("{} -> {}", name, status));
-    }
-
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
+        return add(crd, null, StorageType.UNKNOWN);
+    }
+    public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type) {
 
         String accountName = generateStorageAccountName();
         log.debug("Creating storage account with name: {}", accountName);
@@ -62,31 +49,29 @@ public class StorageAccountService {
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
                 .withAccessFromAzureServices()
                 .disableBlobPublicAccess()
-                .withTag("org-id", getOrgId(crd).orElse("N/A"))
-                .withTag("team", getTeam(crd).orElse("N/A"))
+                .withTag(TAG_ORG_ID, getOrgId(crd).orElse("N/A"))
+                .withTag(TAG_TEAM, getTeam(crd).orElse("N/A"))
+                .withTag(TAG_TYPE, type.name())
                 .create();
 
-        storageAccounts.put(
-                getAccountStatusName(storageAccount.resourceGroupName(), storageAccount.name()),
-                storageAccount.accountStatuses().primary().name()
-        );
+        storageResourceRepository.add(StorageResource.of(storageAccount, path, type));
 
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
-        log.debug("We got {} storage accounts after adding a new one", storageAccounts.size());
+        log.debug("We got {} storage accounts after adding a new one", storageResourceRepository.size());
 
         return storageAccount;
     }
 
-    public void delete(AzureStorageObject azureStorageObject) {
-        log.debug("Removing storage account {}", azureStorageObject.getStorageAccountName());
+    public void delete(StorageResource storageResource) {
+        log.debug("Removing storage account {}", storageResource.getStorageAccountName());
         storageManager
                 .storageAccounts()
-                .deleteByResourceGroup(azureStorageObject.getResourceGroup(), azureStorageObject.getStorageAccountName());
-        log.debug("We got {} storage accounts before removing", storageAccounts.size());
-        storageAccounts.remove(getAccountStatusName(azureStorageObject.getResourceGroup(), azureStorageObject.getStorageAccountName()));
-        log.debug("Storage account {} removed!", azureStorageObject.getStorageAccountName());
-        log.debug("We got {} storage accounts after removing", storageAccounts.size());
+                .deleteByResourceGroup(storageResource.getResourceGroup(), storageResource.getStorageAccountName());
+        log.debug("We got {} storage accounts before removing", storageResourceRepository.size());
+        storageResourceRepository.remove(storageResource);
+        log.debug("Storage account {} removed!", storageResource.getStorageAccountName());
+        log.debug("We got {} storage accounts after removing", storageResourceRepository.size());
     }
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
@@ -99,7 +84,7 @@ public class StorageAccountService {
             return Optional.empty();
         }
 
-        if (storageAccounts.containsKey(getAccountStatusName(azureConfiguration.getStorageAccountResourceGroup(), storageAccountName.get()))) {
+        if (storageResourceRepository.exists(storageAccountName.get())) {
             log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()
@@ -110,18 +95,6 @@ public class StorageAccountService {
 
         return Optional.empty();
 
-    }
-
-//    public String getStatus(FileShareCrd crd) {
-//        return storageAccounts.get(getAccountStatusName(crd.getSpec().getResourceGroup(), crd.getMetadata().getName()));
-//    }
-
-    public String getConnectionString(StorageAccount storageAccount) {
-        return String.format(
-                "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net",
-                storageAccount.name(),
-                storageAccount.getKeys().get(0).value()
-        );
     }
 
     public String generateStorageAccountName() {
@@ -140,15 +113,5 @@ public class StorageAccountService {
         }
 
         return name;
-    }
-
-//    public Optional<String> getStorageAccountNameFromAnnotation(FlaisCrd<? extends AzureSpec> primaryResource) {
-//        return Optional.ofNullable(primaryResource.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
-//    }
-
-    private String getAccountStatusName(String resourceGroup, String name) {
-        return String.format("%s/%s",
-                resourceGroup,
-                name);
     }
 }

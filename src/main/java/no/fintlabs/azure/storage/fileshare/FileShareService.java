@@ -7,6 +7,9 @@ import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.storage.StorageAccountService;
+import no.fintlabs.azure.storage.StorageResource;
+import no.fintlabs.azure.storage.StorageResourceRepository;
+import no.fintlabs.azure.storage.StorageType;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -21,17 +24,19 @@ public class FileShareService {
 
 
     private final StorageAccountService storageAccountService;
+    private final StorageResourceRepository storageResourceRepository;
     private final AzureConfiguration azureConfiguration;
 
-    public FileShareService(StorageAccountService storageAccountService, AzureConfiguration azureConfiguration) {
+    public FileShareService(StorageAccountService storageAccountService, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
+        this.storageResourceRepository = storageResourceRepository;
         this.azureConfiguration = azureConfiguration;
     }
 
 
-    public FileShare add(FileShare desired, FileShareCrd crd) {
+    public StorageResource add(StorageResource desired, FileShareCrd crd) {
 
-        StorageAccount storageAccount = storageAccountService.add(crd);
+        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.FILE_SHARE);
 
         log.debug("Creating file share...");
         FileShareInner fileShare = storageAccount
@@ -40,19 +45,16 @@ public class FileShareService {
                 .getFileShares()
                 .create(azureConfiguration.getStorageAccountResourceGroup(),
                         storageAccount.name(),
-                        desired.getShareName(),
+                        desired.getPath(),
                         new FileShareInner()
                 );
 
         log.debug("File share created: {}", fileShare.name());
 
-        desired.setConnectionString(storageAccountService.getConnectionString(storageAccount));
-        desired.setStorageAccountName(storageAccount.name());
-
-        return desired;
+        return StorageResource.of(storageAccount, desired.getPath(), StorageType.FILE_SHARE);
     }
 
-    public Set<FileShare> get(FileShareCrd crd) {
+    public Set<StorageResource> get(FileShareCrd crd) {
 
         if (storageAccountService.getStorageAccount(crd).isPresent()) {
 
@@ -68,12 +70,17 @@ public class FileShareService {
                                 .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
                         .stream()
                         .toList();
-                return Collections.singleton(FileShare.builder()
-                        .storageAccountName(storageAccount.name())
-                        .resourceGroup(storageAccount.resourceGroupName())
-                                .shareName(fileShares.isEmpty() ? "" : fileShares.get(0).name())
-                        .connectionString(storageAccountService.getConnectionString(storageAccount))
-                        .build());
+
+                StorageResource storageResource =
+                        StorageResource.of(
+                                storageAccount, fileShares.isEmpty() ? "" : fileShares.get(0).name(),
+                                StorageType.FILE_SHARE
+                        );
+
+                storageResourceRepository.update(storageResource);
+
+                return Collections.singleton(storageResource);
+
             } else {
                 log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
                 return Collections.emptySet();
@@ -82,7 +89,7 @@ public class FileShareService {
         return Collections.emptySet();
     }
 
-    public void delete(FileShare fileShare) {
-        storageAccountService.delete(fileShare);
+    public void delete(StorageResource storageResource) {
+        storageAccountService.delete(storageResource);
     }
 }

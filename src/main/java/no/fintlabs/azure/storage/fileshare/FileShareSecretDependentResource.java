@@ -9,6 +9,7 @@ import io.javaoperatorsdk.operator.processing.dependent.kubernetes.KubernetesDep
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisKubernetesDependentResource;
 import no.fintlabs.FlaisWorkflow;
+import no.fintlabs.azure.storage.StorageResource;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
@@ -17,7 +18,7 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-@KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=flaiserator")
+@KubernetesDependent(labelSelector = "app.kubernetes.io/managed-by=azurerator")
 public class FileShareSecretDependentResource extends FlaisKubernetesDependentResource<Secret, FileShareCrd, FileShareSpec> {
 
     public FileShareSecretDependentResource(FlaisWorkflow<FileShareCrd, FileShareSpec> workflow, FileShareDependentResource fileShareDependentResource, KubernetesClient kubernetesClient) {
@@ -31,8 +32,8 @@ public class FileShareSecretDependentResource extends FlaisKubernetesDependentRe
 
         log.debug("Desired secret for {}", resource.getMetadata().getName());
 
-        Optional<FileShare> fileShare = context.getSecondaryResource(FileShare.class);
-        FileShare azureFileShare = fileShare.orElseThrow();
+        Optional<StorageResource> fileShare = context.getSecondaryResource(StorageResource.class);
+        StorageResource azureFileShare = fileShare.orElseThrow();
 
         HashMap<String, String> labels = new HashMap<>(resource.getMetadata().getLabels());
 
@@ -46,7 +47,7 @@ public class FileShareSecretDependentResource extends FlaisKubernetesDependentRe
                 .endMetadata()
                 .withType("Opaque")
                 .addToData("fint.azure.storage-account.connection-string", encode(azureFileShare.getConnectionString()))
-                .addToData("fint.azure.storage-account.file-share.name", encode((azureFileShare.getShareName())))
+                .addToData("fint.azure.storage-account.file-share.name", encode((azureFileShare.getPath())))
                 .build();
     }
 

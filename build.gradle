@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.7.4'
     id 'io.spring.dependency-management' version '1.0.14.RELEASE'
     id 'java'
+    id 'groovy'
 }
 
 group = 'no.fintlabs'
@@ -26,6 +27,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     implementation 'com.azure.resourcemanager:azure-resourcemanager-storage:2.20.0'
     implementation 'com.azure:azure-identity:1.7.0'
@@ -47,6 +49,7 @@ dependencies {
     testImplementation 'org.spockframework:spock-spring:2.3-groovy-3.0'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core:4.8.1'
 }
 
 tasks.named('test') {
