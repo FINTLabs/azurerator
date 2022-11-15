@@ -52,6 +52,10 @@ public class StorageAccountService {
                 .withTag(TAG_ORG_ID, getOrgId(crd).orElse("N/A"))
                 .withTag(TAG_TEAM, getTeam(crd).orElse("N/A"))
                 .withTag(TAG_TYPE, type.name())
+                .withTag(TAG_INSTANCE, crd.getMetadata().getLabels().get("app.kubernetes.io/instance"))
+                .withTag(TAG_PART_OF, crd.getMetadata().getLabels().get("app.kubernetes.io/part-of"))
+                .withTag(TAG_CRD_NAME, crd.getMetadata().getName())
+                .withTag(TAG_CRD_NAMESPACE, crd.getMetadata().getNamespace())
                 .create();
 
         storageResourceRepository.add(StorageResource.of(storageAccount, path, type));
