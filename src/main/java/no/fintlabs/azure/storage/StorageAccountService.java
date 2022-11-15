@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 import static no.fintlabs.MetadataUtils.*;
+import static no.fintlabs.azure.TagNames.TAG_ORG_ID;
+import static no.fintlabs.azure.TagNames.TAG_TEAM;
 
 @Slf4j
 @Service
@@ -45,11 +47,11 @@ public class StorageAccountService {
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
                 .withAccessFromAzureServices()
                 .disableBlobPublicAccess()
-                .withTag("org-id", getOrgId(crd).orElse("N/A"))
-                .withTag("team", getTeam(crd).orElse("N/A"))
+                .withTag(TAG_ORG_ID, getOrgId(crd).orElse("N/A"))
+                .withTag(TAG_TEAM, getTeam(crd).orElse("N/A"))
                 .create();
 
-        storageAccountRepository.add(storageAccount);
+        storageAccountRepository.add(AzureStorageObject.of(storageAccount));
 
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());

@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
+import java.util.Collection;
 
 @RestController
 @RequestMapping("api/flais/operators/azurerator")
@@ -18,7 +18,7 @@ public class StorageAccountController {
     }
 
     @GetMapping("storage-accounts")
-    public Mono<Map<String, String>> getStorageAccounts() {
+    public Mono<Collection<AzureStorageObject>> getStorageAccounts() {
         return Mono.justOrEmpty(storageAccountRepository.getAll());
     }
 }
