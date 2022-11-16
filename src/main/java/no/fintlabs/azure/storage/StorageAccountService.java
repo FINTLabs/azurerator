@@ -49,7 +49,7 @@ public class StorageAccountService {
                 .withExistingResourceGroup(azureConfiguration.getStorageAccountResourceGroup())
                 .withGeneralPurposeAccountKindV2()
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
-                .withAccessFromAzureServices()
+                //.withAccessFromAzureServices()
                 .disableBlobPublicAccess()
                 .withTag(TAG_ORG_ID, getOrgId(crd).orElse("N/A"))
                 .withTag(TAG_TEAM, getTeam(crd).orElse("N/A"))
