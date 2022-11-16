@@ -71,6 +71,6 @@ public class StorageResourceRepository {
                 .forEach(storageAccount -> add(StorageResource.of(storageAccount)));
 
         log.debug("Found {} storage accounts:", storageResources.size());
-        storageResources.forEach((name, status) -> log.debug("{} -> {}", name, status));
+        storageResources.forEach((name, storageResource) -> log.debug("{} -> {}", name, storageResource));
     }
 }

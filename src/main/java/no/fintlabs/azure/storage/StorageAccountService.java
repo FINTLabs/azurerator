@@ -38,6 +38,7 @@ public class StorageAccountService {
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
         return add(crd, null, StorageType.UNKNOWN);
     }
+
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type) {
 
         String accountName = generateStorageAccountName();

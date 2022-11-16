@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import no.fintlabs.Props;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import static no.fintlabs.azure.TagNames.*;
@@ -41,7 +40,10 @@ public class StorageResource {
     }
 
     public static StorageResource of(StorageAccount storageAccount) {
-        return of(storageAccount, null, StorageType.UNKNOWN);
+        StorageType storageType = StorageType.valueOf(storageAccount.tags().getOrDefault(TAG_TYPE, StorageType.UNKNOWN.name()));
+        return of(storageAccount,
+                PathFactory.getPathFromStorageAccount(storageAccount, storageType),
+                storageType);
     }
 
     public static StorageResource of(StorageAccount storageAccount, String path, StorageType type) {
@@ -58,7 +60,7 @@ public class StorageResource {
                 .partOf(storageAccount.tags().getOrDefault(TAG_PART_OF, TAG_DEFAULT_VALUE))
                 .instance(storageAccount.tags().getOrDefault(TAG_INSTANCE, TAG_DEFAULT_VALUE))
                 .portalUri(buildPortalUri(storageAccount))
-                .environment(Props.getEnvironment())
+                .environment(storageAccount.tags().getOrDefault(TAG_ENVIRONMENT, TAG_DEFAULT_VALUE))
                 .path(path)
                 .type(type)
                 .build();
@@ -89,6 +91,10 @@ public class StorageResource {
                 ", environment='" + environment + '\'' +
                 ", path='" + path + '\'' +
                 ", type=" + type +
+                ", crdName='" + crdName + '\'' +
+                ", crdNamespace='" + crdNamespace + '\'' +
+                ", instance='" + instance + '\'' +
+                ", partOf='" + partOf + '\'' +
                 '}';
     }
 }

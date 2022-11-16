@@ -1,7 +1,6 @@
 package no.fintlabs.azure.storage.fileshare;
 
 import com.azure.resourcemanager.storage.fluent.models.FileShareInner;
-import com.azure.resourcemanager.storage.fluent.models.FileShareItemInner;
 import com.azure.resourcemanager.storage.models.ProvisioningState;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +12,9 @@ import no.fintlabs.azure.storage.StorageType;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-import static no.fintlabs.MetadataUtils.getStorageAccountName;
+import static no.fintlabs.azure.storage.PathFactory.getPathFromStorageAccount;
 
 @Slf4j
 @Service
@@ -25,12 +23,10 @@ public class FileShareService {
 
     private final StorageAccountService storageAccountService;
     private final StorageResourceRepository storageResourceRepository;
-    private final AzureConfiguration azureConfiguration;
 
     public FileShareService(StorageAccountService storageAccountService, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageAccountService = storageAccountService;
         this.storageResourceRepository = storageResourceRepository;
-        this.azureConfiguration = azureConfiguration;
     }
 
 
@@ -43,7 +39,8 @@ public class FileShareService {
                 .manager()
                 .serviceClient()
                 .getFileShares()
-                .create(azureConfiguration.getStorageAccountResourceGroup(),
+                .create(
+                        storageAccount.resourceGroupName(),
                         storageAccount.name(),
                         desired.getPath(),
                         new FileShareInner()
@@ -62,18 +59,10 @@ public class FileShareService {
             if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
                 log.debug("Storage account for {} is ready", crd.getMetadata().getName());
 
-                List<FileShareItemInner> fileShares = storageAccount
-                        .manager()
-                        .serviceClient()
-                        .getFileShares()
-                        .list(azureConfiguration.getStorageAccountResourceGroup(), getStorageAccountName(crd)
-                                .orElseThrow(() -> new IllegalArgumentException("Unable to get storage account name from annotation")))
-                        .stream()
-                        .toList();
-
                 StorageResource storageResource =
                         StorageResource.of(
-                                storageAccount, fileShares.isEmpty() ? "" : fileShares.get(0).name(),
+                                storageAccount,
+                                getPathFromStorageAccount(storageAccount, StorageType.FILE_SHARE),
                                 StorageType.FILE_SHARE
                         );
 
