@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import no.fintlabs.EnvironmentService;
+import no.fintlabs.Props;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import static no.fintlabs.azure.TagNames.*;
@@ -58,7 +58,7 @@ public class StorageResource {
                 .partOf(storageAccount.tags().getOrDefault(TAG_PART_OF, TAG_DEFAULT_VALUE))
                 .instance(storageAccount.tags().getOrDefault(TAG_INSTANCE, TAG_DEFAULT_VALUE))
                 .portalUri(buildPortalUri(storageAccount))
-                .environment(EnvironmentService.getEnvironment())
+                .environment(Props.getEnvironment())
                 .path(path)
                 .type(type)
                 .build();

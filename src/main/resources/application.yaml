@@ -1,3 +1,7 @@
 logging:
   level:
     no.fintlabs: debug
+
+fint:
+  operator:
+    environment: local-dev
