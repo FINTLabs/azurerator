@@ -1,6 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
+namespace: operators
 resources:
   - service.yaml
   - deployment.yaml
@@ -9,6 +9,15 @@ resources:
   - onepassword.yaml
   - serviceaccount.yaml
   - rolebinding.yaml
-  - namespace.yaml
   - azurefileshares.fintlabs.no-v1.yml
   - azureblobcontainers.fintlabs.no-v1.yml
+
+commonLabels:
+  app.kubernetes.io/name: azurerator
+  app.kubernetes.io/instance: flais-azurerator
+  app.kubernetes.io/version: "latest"
+  app.kubernetes.io/managed-by: GA
+  app.kubernetes.io/component: operator
+  app.kubernetes.io/part-of: fintlabs-application-infrastructure-services
+  fintlabs.no/team: flais
+  fintlabs.no/org-id: flais.io
