@@ -7,6 +7,7 @@ import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
+import no.fintlabs.Props;
 import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.AzureSpec;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -56,6 +57,7 @@ public class StorageAccountService {
                 .withTag(TAG_PART_OF, crd.getMetadata().getLabels().get("app.kubernetes.io/part-of"))
                 .withTag(TAG_CRD_NAME, crd.getMetadata().getName())
                 .withTag(TAG_CRD_NAMESPACE, crd.getMetadata().getNamespace())
+                .withTag(TAG_ENVIRONMENT, Props.getEnvironment())
                 .create();
 
         storageResourceRepository.add(StorageResource.of(storageAccount, path, type));

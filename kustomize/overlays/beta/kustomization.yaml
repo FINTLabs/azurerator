@@ -4,3 +4,22 @@ resources:
   - ../../base
 patchesStrategicMerge:
   - onepassword.yaml
+commonLabels:
+  app.kubernetes.io/name: azurerator
+  app.kubernetes.io/instance: flais-azurerator
+  app.kubernetes.io/version: "latest"
+  app.kubernetes.io/managed-by: GA
+  app.kubernetes.io/component: operator
+  app.kubernetes.io/part-of: fintlabs-application-infrastructure-services
+  fintlabs.no/team: flais
+  fintlabs.no/org-id: flais.io
+patches:
+  - patch: |-
+      - op: add
+        path: "/spec/template/spec/containers/0/env/-"
+        value:
+          name: fint.operator.environment
+          value: beta
+    target:
+      kind: Deployment
+      name: azurerator
