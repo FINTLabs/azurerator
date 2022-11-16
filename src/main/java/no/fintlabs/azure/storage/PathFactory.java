@@ -3,6 +3,7 @@ package no.fintlabs.azure.storage;
 import com.azure.resourcemanager.storage.fluent.models.FileShareItemInner;
 import com.azure.resourcemanager.storage.fluent.models.ListContainerItemInner;
 import com.azure.resourcemanager.storage.models.StorageAccount;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.List;
 
@@ -30,5 +31,9 @@ public class PathFactory {
                 return StorageType.UNKNOWN.name();
 
         }
+    }
+
+    static String generatePathName() {
+        return RandomStringUtils.randomAlphabetic(12).toLowerCase();
     }
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import static no.fintlabs.azure.TagNames.*;
 
@@ -35,7 +34,7 @@ public class StorageResource {
 
     public static StorageResource desired() {
         return StorageResource.builder()
-                .path(RandomStringUtils.randomAlphabetic(12).toLowerCase())
+                .path(PathFactory.generatePathName())
                 .build();
     }
 
