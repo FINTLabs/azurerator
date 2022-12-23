@@ -1,4 +1,5 @@
 # FLAIS Azurerator
+[![Create and publish a Docker image](https://github.com/FINTLabs/azurerator/actions/workflows/build-and-deploy.yaml/badge.svg)](https://github.com/FINTLabs/azurerator/actions/workflows/build-and-deploy.yaml)
 
 <!-- TOC -->
 * [FLAIS Azurerator](#flais-azurerator)
