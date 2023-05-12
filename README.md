@@ -135,4 +135,3 @@ Put this in a secret called `azurerator` with the following properties:
 |---------------------------------------------------|----------------------|------------------------------------------------------------|
 | fint.azure.storage-account.resource-group         | `rg-managed-storage` | Name of resource group                                     |
 | fint.azure.storage-account.polling-period-minutes | `10`                 | Period in minutes between each polling for storage account |
-
