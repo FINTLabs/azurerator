@@ -85,13 +85,15 @@ public class StorageAccountService {
 
         log.debug("Check if Azure Storage Account for resource {} exists", primaryResource.getMetadata().getName());
 
+        log.debug("Dump value of primaryResource {}", primaryResource);
+
         Optional<String> storageAccountName = getStorageAccountName(primaryResource);
 
         if (storageAccountName.isEmpty()) {
             return Optional.empty();
         }
 
-        log.debug("Dump value of storageAccountName {}", storageAccountName.get());
+        log.debug("Dump value of storageAccountName.get() {}", storageAccountName.get());
 
         if (storageResourceRepository.exists(storageAccountName.get())) {
             log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
