@@ -91,6 +91,8 @@ public class StorageAccountService {
             return Optional.empty();
         }
 
+        log.debug("Dump value of storageAccountName {}", storageAccountName.get());
+
         if (storageResourceRepository.exists(storageAccountName.get())) {
             log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
