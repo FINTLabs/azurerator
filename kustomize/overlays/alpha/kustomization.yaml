@@ -15,7 +15,7 @@ patches:
         path: "/spec/template/spec/containers/0/env/-"
         value:
           name: fint.azure.storage-account.polling-period-minutes
-          value: 1
+          value: "1"
     target:
       kind: Deployment
       name: azurerator
