@@ -1,13 +1,13 @@
 apiVersion: fintlabs.no/v1alpha1
 kind: AzureBlobContainer
 metadata:
-  name: arkiv-adapter
+  name: test-adapter
   labels:
-    app.kubernetes.io/name: arkiv-adapter
-    app.kubernetes.io/instance: arkiv-adapter_rogfk_no
+    app.kubernetes.io/name: test-adapter
+    app.kubernetes.io/instance: test-adapter_rogfk_no
     app.kubernetes.io/version: latest
     app.kubernetes.io/component: adapter
-    app.kubernetes.io/part-of: arkiv
+    app.kubernetes.io/part-of: test
     fintlabs.no/team: flais
     fintlabs.no/org-id: flais.io
 

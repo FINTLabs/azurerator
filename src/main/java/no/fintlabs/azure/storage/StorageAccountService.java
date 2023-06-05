@@ -61,9 +61,22 @@ public class StorageAccountService {
                 .withTag(TAG_ENVIRONMENT, Props.getEnvironment())
                 .create();
 
+        if (storageAccount.name().equals(accountName)) {
+            throw new IllegalStateException("Name of StorageAccount doesn't match accountName (storageAccount: " + storageAccount.name() + ", accountName: " + accountName + ")");
+        }
+
         storageResourceRepository.add(StorageResource.of(storageAccount, path, type));
 
+        if (!storageResourceRepository.exists(accountName)) {
+            throw new IllegalStateException("Account name:" + accountName + " does not exist in storageResourceRepository");
+        }
+
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
+
+        if (getStorageAccountName(crd).equals(accountName)) {
+            throw new IllegalStateException("CRD is not right.");
+        }
+
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
         log.debug("We got {} storage accounts after adding a new one", storageResourceRepository.size());
 
