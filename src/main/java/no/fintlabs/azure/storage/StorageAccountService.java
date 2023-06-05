@@ -73,8 +73,8 @@ public class StorageAccountService {
 
         crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
 
-        if (!getStorageAccountName(crd).equals(accountName)) {
-            throw new IllegalStateException("CRD is not right.");
+        if (!getStorageAccountName(crd).orElseThrow().equals(accountName)) {
+            throw new IllegalStateException("CRD name: " + getStorageAccountName(crd) +" is not matching accountName: " + accountName);
         }
 
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
