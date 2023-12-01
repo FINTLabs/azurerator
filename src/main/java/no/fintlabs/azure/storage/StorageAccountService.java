@@ -5,6 +5,7 @@ import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
 import no.fintlabs.Props;
@@ -29,10 +30,17 @@ public class StorageAccountService {
 
     private final AzureConfiguration azureConfiguration;
 
+    public static final String ANNOTATION_STORAGE_ACCOUNT_NAME = "fintlabs.no/storage-account-name";
+
+
     public StorageAccountService(StorageManager storageManager, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageManager = storageManager;
         this.storageResourceRepository = storageResourceRepository;
         this.azureConfiguration = azureConfiguration;
+    }
+
+    public static Optional<String> getStorageAccountName(HasMetadata crd) {
+        return Optional.ofNullable(crd.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
