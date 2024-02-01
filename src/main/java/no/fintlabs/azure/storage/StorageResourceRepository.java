@@ -70,7 +70,7 @@ public class StorageResourceRepository {
                 .filter(storageAccount -> storageAccount.resourceGroupName().equals(azureConfiguration.getStorageAccountResourceGroup()))
                 .forEach(storageAccount -> add(StorageResource.of(storageAccount)));
 
-        log.debug("Found {} storage accounts:", storageResources.size());
+        log.info("Found {} storage accounts:", storageResources.size());
         storageResources.forEach((name, storageResource) -> log.debug("{} -> {}", name, storageResource));
     }
 }

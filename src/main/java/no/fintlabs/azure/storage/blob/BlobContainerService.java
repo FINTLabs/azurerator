@@ -46,28 +46,28 @@ public class BlobContainerService {
 
     public Set<StorageResource> get(BlobContainerCrd crd) {
 
-
-        if (storageAccountService.getStorageAccount(crd).isPresent()) {
-
-            StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
-            if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
-                log.debug("Storage account for {} is ready", crd.getMetadata().getName());
-
-                StorageResource storageResource = StorageResource.of(
-                        storageAccount,
-                        PathFactory.getPathFromStorageAccount(storageAccount, StorageType.BLOB_CONTAINER),
-                        StorageType.BLOB_CONTAINER);
-                storageResourceRepository.update(storageResource);
-
-                return Collections.singleton(storageResource);
-
-            } else {
-                log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
-                return Collections.emptySet();
-            }
+        if (storageAccountService.getStorageAccount(crd).isEmpty()) {
+            // TODO: FLA-226: Possible problem here if we return emptySet()
+            log.info("Storage account for {} is not found", crd.getMetadata().getName());
+            return Collections.emptySet();
         }
-        return Collections.emptySet();
 
+        StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
+        if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
+            log.debug("Storage account for {} is ready", crd.getMetadata().getName());
+
+            StorageResource storageResource = StorageResource.of(
+                    storageAccount,
+                    PathFactory.getPathFromStorageAccount(storageAccount, StorageType.BLOB_CONTAINER),
+                    StorageType.BLOB_CONTAINER);
+            storageResourceRepository.update(storageResource);
+
+            return Collections.singleton(storageResource);
+
+        } else {
+            log.warn("Storage account for {} is not ready yet", crd.getMetadata().getName());
+            throw new IllegalStateException("Storage account for " + crd.getMetadata().getName() + " is not ready yet");
+        }
     }
 
     public void delete(StorageResource blobContainer) {

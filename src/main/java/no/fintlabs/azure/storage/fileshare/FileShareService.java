@@ -53,29 +53,29 @@ public class FileShareService {
 
     public Set<StorageResource> get(FileShareCrd crd) {
 
-        if (storageAccountService.getStorageAccount(crd).isPresent()) {
-
-            StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
-            if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
-                log.debug("Storage account for {} is ready", crd.getMetadata().getName());
-
-                StorageResource storageResource =
-                        StorageResource.of(
-                                storageAccount,
-                                getPathFromStorageAccount(storageAccount, StorageType.FILE_SHARE),
-                                StorageType.FILE_SHARE
-                        );
-
-                storageResourceRepository.update(storageResource);
-
-                return Collections.singleton(storageResource);
-
-            } else {
-                log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
-                return Collections.emptySet();
-            }
+        if (storageAccountService.getStorageAccount(crd).isEmpty()) {
+            log.info("Storage account for {} is not found", crd.getMetadata().getName());
+            return Collections.emptySet();
         }
-        return Collections.emptySet();
+
+        StorageAccount storageAccount = storageAccountService.getStorageAccount(crd).get();
+        if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
+            log.debug("Storage account for {} is ready", crd.getMetadata().getName());
+
+            StorageResource storageResource =
+                    StorageResource.of(
+                            storageAccount,
+                            getPathFromStorageAccount(storageAccount, StorageType.FILE_SHARE),
+                            StorageType.FILE_SHARE
+                    );
+
+            storageResourceRepository.update(storageResource);
+            return Collections.singleton(storageResource);
+
+        } else {
+            log.debug("Storage account for {} is not ready yet", crd.getMetadata().getName());
+            throw new IllegalStateException("Storage account for " + crd.getMetadata().getName() + " is not ready yet");
+        }
     }
 
     public void delete(StorageResource storageResource) {
