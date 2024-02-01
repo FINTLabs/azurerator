@@ -54,7 +54,7 @@ public class FileShareService {
     public Set<StorageResource> get(FileShareCrd crd) {
 
         if (storageAccountService.getStorageAccount(crd).isEmpty()) {
-            log.info("Storage account for {} is not fount", crd.getMetadata().getName());
+            log.info("Storage account for {} is not found", crd.getMetadata().getName());
             return Collections.emptySet();
         }
 

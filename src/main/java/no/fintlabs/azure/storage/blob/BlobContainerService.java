@@ -48,7 +48,7 @@ public class BlobContainerService {
 
         if (storageAccountService.getStorageAccount(crd).isEmpty()) {
             // TODO: FLA-226: Possible problem here if we return emptySet()
-            log.info("Storage account for {} is not fount", crd.getMetadata().getName());
+            log.info("Storage account for {} is not found", crd.getMetadata().getName());
             return Collections.emptySet();
         }
 
@@ -65,7 +65,7 @@ public class BlobContainerService {
             return Collections.singleton(storageResource);
 
         } else {
-            log.info("Storage account for {} is not ready yet", crd.getMetadata().getName());
+            log.warn("Storage account for {} is not ready yet", crd.getMetadata().getName());
             throw new IllegalStateException("Storage account for " + crd.getMetadata().getName() + " is not ready yet");
         }
     }
