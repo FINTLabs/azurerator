@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -49,6 +50,7 @@ public class StorageResourceRepository {
 
     public void remove(StorageResource storageResource) {
         storageResources.remove(storageResource.getStorageAccountName());
+        refresh(storageResource.getEnvironment());
     }
 
     public boolean exists(String storageAccountName) {
@@ -63,7 +65,14 @@ public class StorageResourceRepository {
         return storageResources.size();
     }
 
-    private void loadStorageResources() {
+    public void refresh(String environment) {
+        Collection<StorageResource> storageResources = getStorageResourcesByEnvironment(environment);
+        storageResources.forEach(storageResource -> {
+            loadStorageResources();
+        });
+    }
+
+    protected void loadStorageResources() {
         storageManager.storageAccounts()
                 .list()
                 .stream()
@@ -72,5 +81,14 @@ public class StorageResourceRepository {
 
         log.info("Found {} storage accounts:", storageResources.size());
         storageResources.forEach((name, storageResource) -> log.debug("{} -> {}", name, storageResource));
+    }
+
+    public Collection<StorageResource> getStorageResourcesByEnvironment(String environment) {
+        log.debug("Get storage resources by environment: {}", environment);
+        return storageResources
+                .values()
+                .stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(environment))
+                .collect(Collectors.toList());
     }
 }
