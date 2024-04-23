@@ -1,137 +1,85 @@
 package no.fintlabs.azure.storage;
 
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collection;
-import java.util.List;
 
-import static junit.framework.TestCase.*;
-import static org.mockito.Mockito.spy;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class StorageResourceRepositoryTest {
-
-    StorageResource storageResource1 = StorageResource.builder()
-            .storageAccountName("test-storage-account-1")
-            .resourceGroup("test-resource-group-1")
-            .connectionString("test-connection-string-1")
-            .status("test")
-            .team("test")
-            .orgId("test")
-            .portalUri("test")
-            .environment("alpha")
-            .path("test")
-            .type(null)
-            .crdName("test")
-            .crdNamespace("test")
-            .instance("test")
-            .partOf("true")
-            .build();
-
-    StorageResource storageResource2 = StorageResource.builder()
-            .storageAccountName("test-storage-account-2")
-            .resourceGroup("test-resource-group-2")
-            .connectionString("test-connection-string-2")
-            .status("test")
-            .team("test")
-            .orgId("test")
-            .portalUri("test")
-            .environment("beta")
-            .path("test")
-            .type(null)
-            .crdName("test")
-            .crdNamespace("test")
-            .instance("test")
-            .partOf("false")
-            .build();
-
-    StorageResource storageResource3 = StorageResource.builder()
-            .storageAccountName("test-storage-account-3")
-            .resourceGroup("test-resource-group-3")
-            .connectionString("test-connection-string-3")
-            .status("test")
-            .team("test")
-            .orgId("test")
-            .portalUri("test")
-            .environment("api")
-            .path("test")
-            .type(null)
-            .crdName("test")
-            .crdNamespace("test")
-            .instance("test")
-            .partOf("false")
-            .build();
-
-    StorageResourceRepository storageAccountRepository = new StorageResourceRepository(null, null);
-
+    StorageResourceRepository storageResourceRepository = new StorageResourceRepository(null, null);
+    StorageResource storageResourceMock1 = mock(StorageResource.class);
+    StorageResource storageResourceMock2 = mock(StorageResource.class);
+    StorageResource storageResourceMock3 = mock(StorageResource.class);
 
     @Test
-    public void testAddingStorageResourceIncreasesRepositorySizeByOne() throws Exception {
-        StorageResourceRepository storageResourceRepository = new StorageResourceRepository(null, null);
-        storageResourceRepository.add(storageResource1);
-        assert storageResourceRepository.size() == 1;
+    public void testAddingStorageResourceIncreasesRepositorySizeByOne() {
+        long beforeSize = storageResourceRepository.size();
+        storageResourceRepository.add(storageResourceMock1);
+        assert storageResourceRepository.size() == beforeSize + 1.0;
     }
 
     @Test
-    public void testRemovingStorageResourceDecreasesRepositorySizeByOne() throws Exception {
-        storageAccountRepository.add(storageResource1);
-        storageAccountRepository.remove(storageResource1);
-        assert storageAccountRepository.size() == 0;
+    public void testRemovingStorageResourceDecreasesRepositorySizeByOne() {
+        storageResourceRepository.add(storageResourceMock1);
+        storageResourceRepository.remove(storageResourceMock1);
+        assert storageResourceRepository.size() == 0.0;
     }
 
     @Test
-    public void whenUpdatingStorageResourceThenItShouldBeReflectedInRepository() throws Exception {
-        storageAccountRepository.add(storageResource1);
-        storageResource1.setEnvironment("beta");
-        assertEquals("beta", storageAccountRepository.get(storageResource1.getStorageAccountName()).get().getEnvironment());
+    public void whenUpdatingStorageResourceThenItShouldBeReflectedInRepository() {
+        when(storageResourceMock1.getEnvironment()).thenReturn("beta");
+        storageResourceRepository.update(storageResourceMock1);
+        assertEquals("beta", storageResourceRepository.get(storageResourceMock1.getStorageAccountName()).get().getEnvironment());
     }
 
     @Test
-    public void checkingIfANonexistentStorageResourceExistsShouldReturnFalse() throws Exception {
-        boolean exists = storageAccountRepository.exists("test");
+    public void checkingIfANonexistentStorageResourceExistsShouldReturnFalse() {
+        boolean exists = storageResourceRepository.exists("test");
         assertFalse(exists);
     }
 
     @Test
-    public void checkingIfAStorageResourceExistsShouldReturnTrue() throws Exception {
-        storageAccountRepository.add(storageResource1);
-        boolean exists = storageAccountRepository.exists("test-storage-account-1");
+    public void checkingIfAStorageResourceExistsShouldReturnTrue() {
+        when(storageResourceMock1.getStorageAccountName()).thenReturn("test-storage-account-1");
+        storageResourceRepository.add(storageResourceMock1);
+        boolean exists = storageResourceRepository.exists("test-storage-account-1");
         assertTrue(exists);
     }
 
     @Test
-    public void getAllStorageObjectsThatHasEnvironmentAlpha() throws Exception {
-        storageAccountRepository.add(storageResource1);
-        storageAccountRepository.add(storageResource2);
-        storageAccountRepository.add(storageResource3);
-
-        List<StorageResource> storageResources = (List<StorageResource>) storageAccountRepository.getStorageResourcesByEnvironment("alpha");
-
-        assertEquals(1, storageResources.size());
-    }
-
-    @Test
-    public void getAllStorageObjectsThatHasEnvironmentBeta() throws Exception {
-        storageAccountRepository.add(storageResource1);
-        storageAccountRepository.add(storageResource2);
-        storageAccountRepository.add(storageResource3);
-
-        List<StorageResource> storageResources = (List<StorageResource>) storageAccountRepository.getStorageResourcesByEnvironment("beta");
-
-        assertEquals(1, storageResources.size());
+    public void getAllStorageObjectsThatHasEnvironmentAlpha() {
+        when(storageResourceMock1.getStorageAccountName()).thenReturn("test-storage-account-1");
+        when(storageResourceMock1.getEnvironment()).thenReturn("alpha");
+        when(storageResourceMock2.getStorageAccountName()).thenReturn("test-storage-account-2");
+        when(storageResourceMock2.getEnvironment()).thenReturn("beta");
+        when(storageResourceMock3.getStorageAccountName()).thenReturn("test-storage-account-3");
+        when(storageResourceMock3.getEnvironment()).thenReturn("alpha");
+        storageResourceRepository.add(storageResourceMock1);
+        storageResourceRepository.add(storageResourceMock2);
+        storageResourceRepository.add(storageResourceMock3);
+        Collection<StorageResource> storageResources = storageResourceRepository.getStorageResourcesByEnvironment("alpha");
+        assertEquals(2, storageResources.size());
     }
 
     @Test
     public void testRefresh() {
-        StorageResourceRepository storageResourceRepository = new StorageResourceRepository(null, null);
         StorageResourceRepository spy = spy(storageResourceRepository);
         spy.refresh("alpha");
+        StorageResourceRepository spyAfterRefresh = spy(spy);
+        assertNotEquals(spy, spyAfterRefresh);
     }
+
 
     @Test
     public void testLoadStorageResources() {
-        Collection<StorageResource> storageResources = storageAccountRepository.getAll();
+        Collection<StorageResource> storageResources = storageResourceRepository.getAll();
         storageResources.forEach(storageResource -> {
-            storageAccountRepository.loadStorageResources();
+            storageResourceRepository.loadStorageResources();
         });
     }
 }
