@@ -18,16 +18,18 @@ public class StorageResourceRepositoryTest {
 
     @Test
     public void testAddingStorageResourceIncreasesRepositorySizeByOne() {
-        long beforeSize = storageResourceRepository.size();
+        long beforeSize = storageResourceRepository.size("alpha");
+        when(storageResourceMock1.getEnvironment()).thenReturn("alpha");
         storageResourceRepository.add(storageResourceMock1);
-        assert storageResourceRepository.size() == beforeSize + 1.0;
+        assert storageResourceRepository.size("alpha") == beforeSize + 1.0;
     }
 
     @Test
     public void testRemovingStorageResourceDecreasesRepositorySizeByOne() {
+        when(storageResourceMock1.getEnvironment()).thenReturn("alpha");
         storageResourceRepository.add(storageResourceMock1);
         storageResourceRepository.remove(storageResourceMock1);
-        assert storageResourceRepository.size() == 0.0;
+        assert storageResourceRepository.size("alpha") == 0.0;
     }
 
     @Test
