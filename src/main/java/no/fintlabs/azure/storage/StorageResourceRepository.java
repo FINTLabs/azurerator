@@ -2,6 +2,7 @@ package no.fintlabs.azure.storage;
 
 import com.azure.resourcemanager.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.Props;
 import no.fintlabs.azure.AzureConfiguration;
 import org.springframework.stereotype.Component;
 
@@ -61,8 +62,10 @@ public class StorageResourceRepository {
         storageResources.put(storageResource.getStorageAccountName(), storageResource);
     }
 
-    public long size() {
-        return storageResources.size();
+    public long size(String environment) {
+        return storageResources.values().stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(environment))
+                .count();
     }
 
     public void refresh(String environment) {
@@ -79,8 +82,16 @@ public class StorageResourceRepository {
                 .filter(storageAccount -> storageAccount.resourceGroupName().equals(azureConfiguration.getStorageAccountResourceGroup()))
                 .forEach(storageAccount -> add(StorageResource.of(storageAccount)));
 
-        log.info("Found {} storage accounts:", storageResources.size());
-        storageResources.forEach((name, storageResource) -> log.debug("{} -> {}", name, storageResource));
+        log.info("Found {} storage accounts in {}", storageResources
+                .values()
+                .stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(Props.getEnvironment()))
+                .count(), Props.getEnvironment());
+
+        storageResources.values()
+                .stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(Props.getEnvironment()))
+                .forEach(storageResource -> log.debug("{} -> {}", storageResource.getStorageAccountName(), storageResource));
     }
 
     public Collection<StorageResource> getStorageResourcesByEnvironment(String environment) {

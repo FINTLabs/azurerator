@@ -78,7 +78,7 @@ public class StorageAccountService {
         }
 
         log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
-        log.debug("We got {} storage accounts after adding a new one", storageResourceRepository.size());
+        log.debug("We got {} storage accounts in {} after adding a new one", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
 
         return storageAccount;
     }
@@ -88,10 +88,10 @@ public class StorageAccountService {
         storageManager
                 .storageAccounts()
                 .deleteByResourceGroup(storageResource.getResourceGroup(), storageResource.getStorageAccountName());
-        log.debug("We got {} storage accounts before removing", storageResourceRepository.size());
+        log.debug("We got {} storage accounts in {} before removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
         storageResourceRepository.remove(storageResource);
         log.debug("Storage account {} removed!", storageResource.getStorageAccountName());
-        log.debug("We got {} storage accounts after removing", storageResourceRepository.size());
+        log.debug("We got {} storage accounts in {} after removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
     }
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
