@@ -2,17 +2,13 @@ name: Create and publish a Docker image
 
 on:
   push:
-    branches: ['main']
+    branches:
+      - 'main'
+      - 'FLA-18-refresh-repo-on-removal'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  ALPHA_CLUSTER_NAME: ${{vars.ALPHA_CLUSTER_NAME}}
-  ALPHA_CLUSTER_RESOURCE_GROUP: ${{vars.ALPHA_CLUSTER_RESOURCE_GROUP}}
-  BETA_CLUSTER_NAME: ${{vars.BETA_CLUSTER_NAME}}
-  BETA_CLUSTER_RESOURCE_GROUP: ${{vars.BETA_CLUSTER_RESOURCE_GROUP}}
-  API_CLUSTER_NAME: ${{vars.API_CLUSTER_NAME}}
-  API_CLUSTER_RESOURCE_GROUP: ${{vars.API_CLUSTER_RESOURCE_GROUP}}
 
 jobs:
   build-and-push-image:
@@ -20,12 +16,13 @@ jobs:
     permissions:
       contents: read
       packages: write
-
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
+      - name: Log in to the Docker Hub
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -48,93 +45,67 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      ## Alpha cluster ##
-      - name: Bake alpha manifests with Kustomize
+  deploy-to-aks:
+    name: deploy for ${{ matrix.org }} to ${{ matrix.cluster }}
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        org:
+          - operators
+        cluster:
+          - aks-alpha-fint-2021-11-18
+    #            - aks-beta-fint-2021-11-23
+    #            - aks-api-fint-2022-02-08
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get environment
+        uses: actions/github-script@v6
+        id: environment
+        with:
+          script: return '${{ matrix.cluster }}'.split('-')[1]
+          result-encoding: string
+
+      - name: Get resource group
+        uses: actions/github-script@v6
+        id: resource-group
+        with:
+          script: return 'rg-aks-${{ steps.environment.outputs.result }}
+          result-encoding: string
+
+      - name: Bake manifests with Kustomize
         uses: azure/k8s-bake@v2
+        id: bake
         with:
           renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/alpha'
-        id: bake-alpha
+          kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}'
 
       - uses: azure/login@v1
         with:
-          creds: '${{ secrets.AKS_ALPHA_FINT_GITHUB }}'
+          creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
 
-      - uses: azure/use-kubelogin@v1.1
+      - uses: azure/kubelogin@v1.1
         with:
           kubelogin-version: 'v0.0.26'
 
-      - name: Set the target Alpha cluster.
+      - name: Set the target cluster.
         uses: azure/aks-set-context@v3
         with:
-         cluster-name: ${{ env.ALPHA_CLUSTER_NAME }}
-         resource-group: ${{ env.ALPHA_CLUSTER_RESOURCE_GROUP }}
-         admin: 'true'
-         use-kubelogin: 'true'
-
-      - name: Deploy to Alpha
-        uses: azure/k8s-deploy@v4.9
-        with:
-         manifests: ${{ steps.bake-alpha.outputs.manifestsBundle }}
-         images: |
-           ${{ steps.meta.outputs.tags }}
-         namespace: operators
-         action: deploy
-
-      ## Beta cluster ##
-      - name: Bake beta manifests with Kustomize
-        uses: azure/k8s-bake@v2
-        with:
-          renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/beta'
-        id: bake-beta
-
-      - uses: azure/login@v1
-        with:
-          creds: '${{ secrets.AKS_BETA_FINT_GITHUB }}'
-
-      - name: Set the target Beta cluster.
-        uses: azure/aks-set-context@v3
-        with:
-          cluster-name: ${{ env.BETA_CLUSTER_NAME }}
-          resource-group: ${{ env.BETA_CLUSTER_RESOURCE_GROUP }}
+          cluster-name: ${{ matrix.cluster }}
+          resource-group: ${{ steps.resource-group.outputs.result }}
           admin: 'true'
           use-kubelogin: 'true'
 
-      - name: Deploy to Beta
+      - name: Deploy to cluster
         uses: azure/k8s-deploy@v4.9
         with:
-          manifests: ${{ steps.bake-beta.outputs.manifestsBundle }}
-          images: |
-            ${{ steps.meta.outputs.tags }}
-          namespace: operators
-          action: deploy
-
-      ## Api cluster ##
-      - name: Bake api manifests with Kustomize
-        uses: azure/k8s-bake@v2
-        with:
-          renderEngine: 'kustomize'
-          kustomizationPath: 'kustomize/overlays/api'
-        id: bake-api
-
-      - uses: azure/login@v1
-        with:
-          creds: '${{ secrets.AKS_API_FINT_GITHUB }}'
-
-      - name: Set the target Api cluster.
-        uses: azure/aks-set-context@v3
-        with:
-          cluster-name: ${{ env.API_CLUSTER_NAME }}
-          resource-group: ${{ env.API_CLUSTER_RESOURCE_GROUP }}
-          admin: 'true'
-          use-kubelogin: 'true'
-
-      - name: Deploy to API
-        uses: azure/k8s-deploy@v4.9
-        with:
-          manifests: ${{ steps.bake-API.outputs.manifestsBundle }}
-          images: |
-            ${{ steps.meta.outputs.tags }}
-          namespace: operators
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          images: ${{ needs.build-and-push.outputs.tags }}
+          namespace: ${{ matrix.org }}
           action: deploy
