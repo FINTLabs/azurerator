@@ -91,11 +91,11 @@ public class StorageResourceRepository {
         storageResources.values()
                 .stream()
                 .filter(storageResource -> storageResource.getEnvironment().equals(Props.getEnvironment()))
-                .forEach(storageResource -> log.debug("{} -> {}", storageResource.getStorageAccountName(), storageResource));
+                .forEach(storageResource -> log.debug("Storage account name: {}", storageResource.getStorageAccountName()));
     }
 
     public Collection<StorageResource> getStorageResourcesByEnvironment(String environment) {
-        log.debug("Get storage resources by environment: {}", environment);
+        log.info("Get storage resources by environment: {}", environment);
         return storageResources
                 .values()
                 .stream()

@@ -42,7 +42,7 @@ public class StorageAccountService {
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type) {
 
         String accountName = generateStorageAccountName();
-        log.debug("Creating storage account with name: {}", accountName);
+        log.info("Creating storage account with name: {}", accountName);
         StorageAccount storageAccount = storageManager.storageAccounts()
                 .define(accountName)
                 .withRegion(Region.NORWAY_EAST)
@@ -77,21 +77,21 @@ public class StorageAccountService {
             throw new IllegalStateException("CRD name: " + getStorageAccountName(crd) +" is not matching accountName: " + accountName);
         }
 
-        log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
-        log.debug("We got {} storage accounts in {} after adding a new one", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
+        log.info("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
+        log.info("We got {} storage accounts in {} after adding a new one", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
 
         return storageAccount;
     }
 
     public void delete(StorageResource storageResource) {
-        log.debug("Removing storage account {}", storageResource.getStorageAccountName());
+        log.info("Removing storage account {}", storageResource.getStorageAccountName());
         storageManager
                 .storageAccounts()
                 .deleteByResourceGroup(storageResource.getResourceGroup(), storageResource.getStorageAccountName());
         log.debug("We got {} storage accounts in {} before removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
         storageResourceRepository.remove(storageResource);
-        log.debug("Storage account {} removed!", storageResource.getStorageAccountName());
-        log.debug("We got {} storage accounts in {} after removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
+        log.info("Storage account {} removed!", storageResource.getStorageAccountName());
+        log.info("We got {} storage accounts in {} after removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
     }
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
@@ -109,7 +109,7 @@ public class StorageAccountService {
         }
 
         if (storageResourceRepository.exists(storageAccountName.get())) {
-            log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
+            log.info("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()
                     .getByResourceGroup(azureConfiguration.getStorageAccountResourceGroup(),
