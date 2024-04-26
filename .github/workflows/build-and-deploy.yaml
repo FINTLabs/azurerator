@@ -105,6 +105,6 @@ jobs:
         uses: azure/k8s-deploy@v5
         with:
           manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: ${{ needs.build-and-push.outputs.tags }}
+          images: ${{ needs.build-and-push-image.outputs.tags }}
           namespace: ${{ matrix.org }}
           action: deploy

@@ -1,9 +1,9 @@
 apiVersion: fintlabs.no/v1alpha1
 kind: AzureBlobContainer
 metadata:
-  name: test-adapter-2
+  name: test-adapter
   labels:
-    app.kubernetes.io/name: test-adapter-2
+    app.kubernetes.io/name: test-adapter
     app.kubernetes.io/instance: test-adapter_rogfk_no
     app.kubernetes.io/version: latest
     app.kubernetes.io/component: adapter
