@@ -1,9 +1,8 @@
 package no.fintlabs.azure.storage.blob;
 
-import com.azure.resourcemanager.storage.models.BlobContainer;
-import com.azure.resourcemanager.storage.models.ProvisioningState;
-import com.azure.resourcemanager.storage.models.PublicAccess;
-import com.azure.resourcemanager.storage.models.StorageAccount;
+import com.azure.resourcemanager.storage.StorageManager;
+import com.azure.resourcemanager.storage.fluent.models.ManagementPolicyInner;
+import com.azure.resourcemanager.storage.models.*;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.storage.*;
@@ -41,6 +40,10 @@ public class BlobContainerService {
 
         log.debug("Blob container created: {}", container.name());
 
+        long lifespanDays = Long.parseLong(desired.getLifespanDays());
+
+        setLifecycleRules(storageAccount.manager(), storageAccount.resourceGroupName(), storageAccount.name(), desired.getPath(), lifespanDays);
+
         return StorageResource.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER);
     }
 
@@ -72,5 +75,28 @@ public class BlobContainerService {
 
     public void delete(StorageResource blobContainer) {
         storageAccountService.delete(blobContainer);
+    }
+
+    private void setLifecycleRules(StorageManager storageManager, String resourceGroupName, String storageAccountName, String containerName, float lifespanDays) {
+
+        ManagementPolicyRule rule = new ManagementPolicyRule()
+                .withName("DeleteOldBlobs")
+                .withEnabled(true)
+                .withDefinition(new ManagementPolicyDefinition()
+                        .withFilters(new ManagementPolicyFilter()
+                                .withPrefixMatch(Collections.singletonList(containerName))
+                                .withBlobTypes(Collections.singletonList("blockBlob")))
+                        .withActions(new ManagementPolicyAction()
+                                .withBaseBlob(new ManagementPolicyBaseBlob()
+                                        .withDelete(new DateAfterModification().withDaysAfterModificationGreaterThan(lifespanDays)))));
+
+        ManagementPolicySchema policySchema = new ManagementPolicySchema()
+                .withRules(Collections.singletonList(rule));
+
+        ManagementPolicyInner managementPolicyInner = new ManagementPolicyInner()
+                .withPolicy(policySchema);
+
+        storageManager.storageAccounts().manager().serviceClient().getManagementPolicies()
+                .createOrUpdate(resourceGroupName, storageAccountName, ManagementPolicyName.DEFAULT, managementPolicyInner);
     }
 }

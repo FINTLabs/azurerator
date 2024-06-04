@@ -30,6 +30,7 @@ public class StorageResource {
     private String crdNamespace;
     private String instance;
     private String partOf;
+    private String lifespanDays;
 
 
     public static StorageResource desired() {
@@ -94,6 +95,7 @@ public class StorageResource {
                 ", crdNamespace='" + crdNamespace + '\'' +
                 ", instance='" + instance + '\'' +
                 ", partOf='" + partOf + '\'' +
+                ", lifespanDays='" + lifespanDays + '\'' +
                 '}';
     }
 }

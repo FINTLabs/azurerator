@@ -29,8 +29,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    implementation 'com.azure.resourcemanager:azure-resourcemanager:2.20.0'
     implementation 'com.azure.resourcemanager:azure-resourcemanager-storage:2.20.0'
+    implementation 'com.azure.resourcemanager:azure-resourcemanager-resources:2.20.0'
     implementation 'com.azure:azure-identity:1.7.0'
+    implementation('com.azure:azure-storage-blob:12.26.0')
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
