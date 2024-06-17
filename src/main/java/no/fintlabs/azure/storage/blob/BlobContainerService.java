@@ -18,8 +18,7 @@ public class BlobContainerService {
 
     private final StorageAccountService storageAccountService;
     private final StorageResourceRepository storageResourceRepository;
-
-    public BlobContainerService(StorageAccountService storageAccountService, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
+    public BlobContainerService(StorageAccountService storageAccountService, StorageResourceRepository storageResourceRepository) {
         this.storageAccountService = storageAccountService;
         this.storageResourceRepository = storageResourceRepository;
     }
@@ -77,7 +76,7 @@ public class BlobContainerService {
         storageAccountService.delete(blobContainer);
     }
 
-    private void setLifecycleRules(StorageManager storageManager, String resourceGroupName, String storageAccountName, String containerName, float lifespanDays) {
+    void setLifecycleRules(StorageManager storageManager, String resourceGroupName, String storageAccountName, String containerName, float lifespanDays) {
 
         ManagementPolicyRule rule = new ManagementPolicyRule()
                 .withName("DeleteOldBlobs")
