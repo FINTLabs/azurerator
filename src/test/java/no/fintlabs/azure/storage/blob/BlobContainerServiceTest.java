@@ -73,13 +73,16 @@ public class BlobContainerServiceTest {
                 .crdNamespace("crdNamespace")
                 .instance("instance")
                 .partOf("partOf")
-                .lifespanDays("30")
+                .lifespanDays(30L)
                 .build();
 
         crd = new BlobContainerCrd();
         crd.setMetadata(new ObjectMeta());
         crd.getMetadata().setName("crdName");
         crd.getMetadata().setNamespace("crdNamespace");
+        crd.setSpec(new BlobContainerSpec());
+        crd.getSpec().setLifespanDays(30L);
+
 
         BlobContainers blobContainers = mock(BlobContainers.class);
         BlobContainer.DefinitionStages.Blank blank = mock(BlobContainer.DefinitionStages.Blank.class);
@@ -101,6 +104,8 @@ public class BlobContainerServiceTest {
         when(storageManagementClient.getManagementPolicies()).thenReturn(managementPoliciesClient);
 
         StorageResource result = blobContainerService.add(desired, crd);
+        result.setCrdName("crdName");
+        result.setLifespanDays(30L);
 
         verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER));
         verify(storageManager).blobContainers();
@@ -159,7 +164,7 @@ public class BlobContainerServiceTest {
                 .crdNamespace("crdNamespace")
                 .instance("instance")
                 .partOf("partOf")
-                .lifespanDays("30")
+                .lifespanDays(30L)
                 .build();
 
         crd = new BlobContainerCrd();
@@ -219,7 +224,7 @@ public class BlobContainerServiceTest {
                 .crdNamespace("crdNamespace")
                 .instance("instance")
                 .partOf("partOf")
-                .lifespanDays("30")
+                .lifespanDays(30L)
                 .build();
 
         assertNotNull(blobContainerService, "blobContainerService is null");

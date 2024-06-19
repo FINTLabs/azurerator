@@ -30,7 +30,7 @@ public class StorageResource {
     private String crdNamespace;
     private String instance;
     private String partOf;
-    private String lifespanDays;
+    private Long lifespanDays;
 
 
     public static StorageResource desired() {

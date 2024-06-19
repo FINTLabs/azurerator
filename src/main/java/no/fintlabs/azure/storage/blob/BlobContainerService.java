@@ -39,7 +39,7 @@ public class BlobContainerService {
 
         log.debug("Blob container created: {}", container.name());
 
-        long lifespanDays = Long.parseLong(desired.getLifespanDays());
+        long lifespanDays = desired.getLifespanDays();
 
         setLifecycleRules(storageAccount.manager(), storageAccount.resourceGroupName(), storageAccount.name(), desired.getPath(), lifespanDays);
 

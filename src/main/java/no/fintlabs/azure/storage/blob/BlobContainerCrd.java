@@ -10,4 +10,8 @@ import no.fintlabs.FlaisCrd;
 @Version("v1alpha1")
 @Kind("AzureBlobContainer")
 public class BlobContainerCrd extends FlaisCrd<BlobContainerSpec> implements Namespaced {
+    @Override
+    protected BlobContainerSpec initSpec() {
+        return new BlobContainerSpec();
+    }
 }
