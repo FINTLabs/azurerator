@@ -201,4 +201,31 @@ public class BlobContainerServiceTest {
         assertTrue(result2.isPresent());
         assertEquals(storageAccount, result2.get());
     }
+
+    @Test
+    public void testDelete() throws IllegalAccessException, NoSuchFieldException {
+        StorageResource desired = StorageResource.builder()
+                .storageAccountName("storageAccountName")
+                .resourceGroup("resourceGroup")
+                .connectionString("connectionString")
+                .status("status")
+                .team("team")
+                .orgId("orgId")
+                .portalUri("portalUri")
+                .environment("environment")
+                .path("path")
+                .type(StorageType.BLOB_CONTAINER)
+                .crdName("crdName")
+                .crdNamespace("crdNamespace")
+                .instance("instance")
+                .partOf("partOf")
+                .lifespanDays("30")
+                .build();
+
+        assertNotNull(blobContainerService, "blobContainerService is null");
+        assertNotNull(storageAccountService, "storageAccountService is null");
+
+        blobContainerService.delete(desired);
+        verify(storageAccountService).delete(desired);
+    }
 }
