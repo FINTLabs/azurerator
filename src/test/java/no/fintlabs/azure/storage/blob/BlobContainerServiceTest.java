@@ -17,8 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
 import java.util.Optional;
 
+import static no.fintlabs.azure.TagNames.TAG_CRD_NAME;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -89,7 +91,7 @@ public class BlobContainerServiceTest {
         BlobContainer.DefinitionStages.WithPublicAccess withPublicAccess = mock(BlobContainer.DefinitionStages.WithPublicAccess.class);
         BlobContainer.DefinitionStages.WithCreate withCreate = mock(BlobContainer.DefinitionStages.WithCreate.class);
 
-        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER)))
+        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER), anyLong()))
                 .thenReturn(storageAccount);
         when(storageAccount.manager()).thenReturn(storageManager);
         when(storageManager.blobContainers()).thenReturn(blobContainers);
@@ -103,11 +105,13 @@ public class BlobContainerServiceTest {
         when(storageManager.serviceClient()).thenReturn(storageManagementClient);
         when(storageManagementClient.getManagementPolicies()).thenReturn(managementPoliciesClient);
 
-        StorageResource result = blobContainerService.add(desired, crd);
-        result.setCrdName("crdName");
-        result.setLifespanDays(30L);
+        when(storageAccount.tags()).thenReturn(Map.ofEntries(
+                Map.entry(TAG_CRD_NAME, "crdName")
+        ));
 
-        verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER));
+        StorageResource result = blobContainerService.add(desired, crd);
+
+        verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER), anyLong());
         verify(storageManager).blobContainers();
         verify(withCreate).create();
 
@@ -115,8 +119,10 @@ public class BlobContainerServiceTest {
         assertEquals(StorageType.BLOB_CONTAINER, result.getType());
         assertEquals("path", result.getPath());
         assertEquals(desired.getLifespanDays(), result.getLifespanDays());
-        assertEquals(desired.getCrdName(), crd.getMetadata().getName());
         assertEquals(desired.getCrdName(), result.getCrdName());
+
+        assertEquals(desired.getLifespanDays(), crd.getSpec().getLifespanDays());
+        assertEquals(desired.getCrdName(), crd.getMetadata().getName());
     }
 
     @Test
@@ -177,7 +183,7 @@ public class BlobContainerServiceTest {
         BlobContainer.DefinitionStages.WithPublicAccess withPublicAccess = mock(BlobContainer.DefinitionStages.WithPublicAccess.class);
         BlobContainer.DefinitionStages.WithCreate withCreate = mock(BlobContainer.DefinitionStages.WithCreate.class);
 
-        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER)))
+        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER),anyLong()))
                 .thenReturn(storageAccount);
         when(storageAccount.manager()).thenReturn(storageManager);
         when(storageManager.blobContainers()).thenReturn(blobContainers);
@@ -193,7 +199,7 @@ public class BlobContainerServiceTest {
 
         StorageResource result = blobContainerService.add(desired, crd);
 
-        verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER));
+        verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER), anyLong());
         verify(storageManager).blobContainers();
         verify(withCreate).create();
 

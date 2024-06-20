@@ -4,7 +4,6 @@ import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.fluent.models.ManagementPolicyInner;
 import com.azure.resourcemanager.storage.models.*;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.azure.AzureConfiguration;
 import no.fintlabs.azure.storage.*;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +25,7 @@ public class BlobContainerService {
 
     public StorageResource add(StorageResource desired, BlobContainerCrd crd) {
 
-        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.BLOB_CONTAINER);
+        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.BLOB_CONTAINER, desired.getLifespanDays());
 
         log.debug("Creating blob container...");
         BlobContainer container = storageAccount
@@ -43,7 +42,7 @@ public class BlobContainerService {
 
         setLifecycleRules(storageAccount.manager(), storageAccount.resourceGroupName(), storageAccount.name(), desired.getPath(), lifespanDays);
 
-        return StorageResource.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER);
+        return StorageResource.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER, lifespanDays);
     }
 
     public Set<StorageResource> get(BlobContainerCrd crd) {
@@ -58,10 +57,7 @@ public class BlobContainerService {
         if (storageAccount.provisioningState().equals(ProvisioningState.SUCCEEDED)) {
             log.debug("Storage account for {} is ready", crd.getMetadata().getName());
 
-            StorageResource storageResource = StorageResource.of(
-                    storageAccount,
-                    PathFactory.getPathFromStorageAccount(storageAccount, StorageType.BLOB_CONTAINER),
-                    StorageType.BLOB_CONTAINER);
+            StorageResource storageResource = StorageResource.of(storageAccount);
             storageResourceRepository.update(storageResource);
 
             return Collections.singleton(storageResource);

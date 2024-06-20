@@ -32,7 +32,7 @@ public class FileShareService {
 
     public StorageResource add(StorageResource desired, FileShareCrd crd) {
 
-        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.FILE_SHARE);
+        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.FILE_SHARE, desired.getLifespanDays());
 
         log.debug("Creating file share...");
         FileShareInner fileShare = storageAccount
@@ -48,7 +48,7 @@ public class FileShareService {
 
         log.debug("File share created: {}", fileShare.name());
 
-        return StorageResource.of(storageAccount, desired.getPath(), StorageType.FILE_SHARE);
+        return StorageResource.of(storageAccount, desired.getPath(), StorageType.FILE_SHARE, desired.getLifespanDays());
     }
 
     public Set<StorageResource> get(FileShareCrd crd) {
@@ -63,11 +63,7 @@ public class FileShareService {
             log.debug("Storage account for {} is ready", crd.getMetadata().getName());
 
             StorageResource storageResource =
-                    StorageResource.of(
-                            storageAccount,
-                            getPathFromStorageAccount(storageAccount, StorageType.FILE_SHARE),
-                            StorageType.FILE_SHARE
-                    );
+                    StorageResource.of(storageAccount);
 
             storageResourceRepository.update(storageResource);
             return Collections.singleton(storageResource);

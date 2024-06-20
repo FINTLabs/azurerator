@@ -36,10 +36,10 @@ public class StorageAccountService {
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
-        return add(crd, null, StorageType.UNKNOWN);
+        return add(crd, null, StorageType.UNKNOWN, 60L);
     }
 
-    public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type) {
+    public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type, long lifespanDays) {
 
         String accountName = generateStorageAccountName();
         log.debug("Creating storage account with name: {}", accountName);
@@ -57,6 +57,7 @@ public class StorageAccountService {
                 .withTag(TAG_INSTANCE, crd.getMetadata().getLabels().get("app.kubernetes.io/instance"))
                 .withTag(TAG_PART_OF, crd.getMetadata().getLabels().get("app.kubernetes.io/part-of"))
                 .withTag(TAG_CRD_NAME, crd.getMetadata().getName())
+                .withTag(TAG_LIFESPAN, "60L")
                 .withTag(TAG_CRD_NAMESPACE, crd.getMetadata().getNamespace())
                 .withTag(TAG_ENVIRONMENT, Props.getEnvironment())
                 .create();
@@ -65,7 +66,7 @@ public class StorageAccountService {
             throw new IllegalStateException("Name of StorageAccount doesn't match accountName (storageAccount: " + storageAccount.name() + ", accountName: " + accountName + ")");
         }
 
-        storageResourceRepository.add(StorageResource.of(storageAccount, path, type));
+        storageResourceRepository.add(StorageResource.of(storageAccount, path, type, lifespanDays));
 
         if (!storageResourceRepository.exists(accountName)) {
             throw new IllegalStateException("Account name:" + accountName + " does not exist in storageResourceRepository");

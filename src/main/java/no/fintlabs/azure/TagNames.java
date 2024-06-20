@@ -10,6 +10,7 @@ public class TagNames {
     public static final String TAG_PART_OF = "part-of";
     public static final String TAG_CRD_NAME = "crd-name";
     public static final String TAG_CRD_NAMESPACE = "crd-namespace";
+    public static final String TAG_LIFESPAN = "60L";
     public static final String TAG_ENVIRONMENT = "environment";
     public static final String TAG_DEFAULT_VALUE = "NA";
 }

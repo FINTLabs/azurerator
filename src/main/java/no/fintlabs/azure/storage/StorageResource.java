@@ -41,12 +41,15 @@ public class StorageResource {
 
     public static StorageResource of(StorageAccount storageAccount) {
         StorageType storageType = StorageType.valueOf(storageAccount.tags().getOrDefault(TAG_TYPE, StorageType.UNKNOWN.name()));
+        long lifespanDays = Long.parseLong(storageAccount.tags().getOrDefault(TAG_LIFESPAN, "60L"));
         return of(storageAccount,
                 PathFactory.getPathFromStorageAccount(storageAccount, storageType),
-                storageType);
+                storageType,
+                lifespanDays
+                );
     }
 
-    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type) {
+    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type, long lifespanDays) {
 
         return StorageResource.builder()
                 .storageAccountName(storageAccount.name())
@@ -63,6 +66,7 @@ public class StorageResource {
                 .environment(storageAccount.tags().getOrDefault(TAG_ENVIRONMENT, TAG_DEFAULT_VALUE))
                 .path(path)
                 .type(type)
+                .lifespanDays(lifespanDays)
                 .build();
     }
 
