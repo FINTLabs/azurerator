@@ -1,6 +1,8 @@
 logging:
   level:
+    root: info
     no.fintlabs: debug
+    n.f.azure.storage: info
 
 fint:
   operator:

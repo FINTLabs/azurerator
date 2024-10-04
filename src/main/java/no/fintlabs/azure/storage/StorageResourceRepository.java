@@ -2,6 +2,7 @@ package no.fintlabs.azure.storage;
 
 import com.azure.resourcemanager.storage.StorageManager;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.Props;
 import no.fintlabs.azure.AzureConfiguration;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -49,6 +51,7 @@ public class StorageResourceRepository {
 
     public void remove(StorageResource storageResource) {
         storageResources.remove(storageResource.getStorageAccountName());
+        refresh(storageResource.getEnvironment());
     }
 
     public boolean exists(String storageAccountName) {
@@ -59,18 +62,44 @@ public class StorageResourceRepository {
         storageResources.put(storageResource.getStorageAccountName(), storageResource);
     }
 
-    public long size() {
-        return storageResources.size();
+    public long size(String environment) {
+        return storageResources.values().stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(environment))
+                .count();
     }
 
-    private void loadStorageResources() {
+    public void refresh(String environment) {
+        Collection<StorageResource> storageResources = getStorageResourcesByEnvironment(environment);
+        storageResources.forEach(storageResource -> {
+            loadStorageResources();
+        });
+    }
+
+    protected void loadStorageResources() {
         storageManager.storageAccounts()
                 .list()
                 .stream()
                 .filter(storageAccount -> storageAccount.resourceGroupName().equals(azureConfiguration.getStorageAccountResourceGroup()))
                 .forEach(storageAccount -> add(StorageResource.of(storageAccount)));
 
-        log.info("Found {} storage accounts:", storageResources.size());
-        storageResources.forEach((name, storageResource) -> log.debug("{} -> {}", name, storageResource));
+        log.info("Found {} storage accounts in {}", storageResources
+                .values()
+                .stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(Props.getEnvironment()))
+                .count(), Props.getEnvironment());
+
+        storageResources.values()
+                .stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(Props.getEnvironment()))
+                .forEach(storageResource -> log.debug("Storage account name: {}", storageResource.getStorageAccountName()));
+    }
+
+    public Collection<StorageResource> getStorageResourcesByEnvironment(String environment) {
+        log.info("Get storage resources by environment: {}", environment);
+        return storageResources
+                .values()
+                .stream()
+                .filter(storageResource -> storageResource.getEnvironment().equals(environment))
+                .collect(Collectors.toList());
     }
 }
