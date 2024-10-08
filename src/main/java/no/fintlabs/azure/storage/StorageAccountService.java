@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 import static no.fintlabs.MetadataUtils.*;
+import static no.fintlabs.azure.Constants.DEFAULT_LIFESPAN_DAYS;
 import static no.fintlabs.azure.TagNames.*;
 
 @Slf4j
@@ -36,7 +37,7 @@ public class StorageAccountService {
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
-        return add(crd, null, StorageType.UNKNOWN, 60L);
+        return add(crd, null, StorageType.UNKNOWN, DEFAULT_LIFESPAN_DAYS);
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type, long lifespanDays) {
@@ -57,7 +58,7 @@ public class StorageAccountService {
                 .withTag(TAG_INSTANCE, crd.getMetadata().getLabels().get("app.kubernetes.io/instance"))
                 .withTag(TAG_PART_OF, crd.getMetadata().getLabels().get("app.kubernetes.io/part-of"))
                 .withTag(TAG_CRD_NAME, crd.getMetadata().getName())
-                .withTag(TAG_LIFESPAN, "60L")
+                .withTag(TAG_LIFESPAN_DAYS, String.valueOf(lifespanDays))
                 .withTag(TAG_CRD_NAMESPACE, crd.getMetadata().getNamespace())
                 .withTag(TAG_ENVIRONMENT, Props.getEnvironment())
                 .create();

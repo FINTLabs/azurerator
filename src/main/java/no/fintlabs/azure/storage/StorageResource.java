@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import static no.fintlabs.azure.Constants.DEFAULT_LIFESPAN_DAYS;
 import static no.fintlabs.azure.TagNames.*;
 
 @Getter
@@ -41,7 +42,7 @@ public class StorageResource {
 
     public static StorageResource of(StorageAccount storageAccount) {
         StorageType storageType = StorageType.valueOf(storageAccount.tags().getOrDefault(TAG_TYPE, StorageType.UNKNOWN.name()));
-        long lifespanDays = Long.parseLong(storageAccount.tags().getOrDefault(TAG_LIFESPAN, "60L"));
+        long lifespanDays = Long.parseLong(storageAccount.tags().getOrDefault(TAG_LIFESPAN_DAYS, DEFAULT_LIFESPAN_DAYS.toString()));
         return of(storageAccount,
                 PathFactory.getPathFromStorageAccount(storageAccount, storageType),
                 storageType,
