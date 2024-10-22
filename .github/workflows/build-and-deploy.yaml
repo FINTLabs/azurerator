@@ -62,7 +62,7 @@ jobs:
 
       - uses: azure/use-kubelogin@v1.2
         with:
-          kubelogin-version: 'v0.0.24'
+          kubelogin-version: 'v0.0.26'
 
       - name: Set the target Alpha cluster.
         uses: azure/aks-set-context@v4
