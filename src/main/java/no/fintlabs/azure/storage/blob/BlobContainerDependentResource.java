@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Set;
 
+import static no.fintlabs.MetadataUtils.ANNOTATION_STORAGE_ACCOUNT_NAME;
+
 
 @Slf4j
 @Component
@@ -43,9 +45,9 @@ public class BlobContainerDependentResource
 
     @Override
     public StorageResource create(StorageResource desired, BlobContainerCrd primary, Context<BlobContainerCrd> context) {
-
-        return blobContainerService.add(desired, primary);
-
+        var storageResource = blobContainerService.add(desired, primary);
+        context.managedDependentResourceContext().put(ANNOTATION_STORAGE_ACCOUNT_NAME, storageResource.getStorageAccountName());
+        return storageResource;
     }
 
     @Override

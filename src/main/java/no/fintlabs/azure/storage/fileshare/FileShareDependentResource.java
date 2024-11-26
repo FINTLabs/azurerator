@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Set;
 
+import static no.fintlabs.MetadataUtils.ANNOTATION_STORAGE_ACCOUNT_NAME;
+
 
 @Slf4j
 @Component
@@ -48,7 +50,9 @@ public class FileShareDependentResource extends FlaisExternalDependentResource<S
 
     @Override
     public StorageResource create(StorageResource desired, FileShareCrd primary, Context<FileShareCrd> context) {
-        return fileShareService.add(desired,primary);
+        var storageResource = fileShareService.add(desired, primary);
+        context.managedDependentResourceContext().put(ANNOTATION_STORAGE_ACCOUNT_NAME, storageResource.getStorageAccountName());
+        return storageResource;
     }
 
     @Override

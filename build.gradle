@@ -29,8 +29,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    implementation 'com.azure.resourcemanager:azure-resourcemanager:2.20.0'
     implementation 'com.azure.resourcemanager:azure-resourcemanager-storage:2.20.0'
+    implementation 'com.azure.resourcemanager:azure-resourcemanager-resources:2.20.0'
     implementation 'com.azure:azure-identity:1.7.0'
+    implementation('com.azure:azure-storage-blob:12.26.0')
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
@@ -51,10 +54,18 @@ dependencies {
     testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mockito:mockito-core:4.8.1'
+    testImplementation 'org.mockito:mockito-inline:4.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 tasks.register('copyResourceDefinition', Copy) {

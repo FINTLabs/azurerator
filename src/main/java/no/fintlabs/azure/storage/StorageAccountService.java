@@ -5,6 +5,7 @@ import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.models.CheckNameAvailabilityResult;
 import com.azure.resourcemanager.storage.models.StorageAccount;
 import com.azure.resourcemanager.storage.models.StorageAccountSkuType;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.FlaisCrd;
 import no.fintlabs.Props;
@@ -13,9 +14,12 @@ import no.fintlabs.azure.AzureSpec;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static no.fintlabs.MetadataUtils.*;
+import static no.fintlabs.azure.Constants.DEFAULT_LIFESPAN_DAYS;
 import static no.fintlabs.azure.TagNames.*;
 
 @Slf4j
@@ -29,10 +33,17 @@ public class StorageAccountService {
 
     private final AzureConfiguration azureConfiguration;
 
+    public static final String ANNOTATION_STORAGE_ACCOUNT_NAME = "fintlabs.no/storage-account-name";
+
+
     public StorageAccountService(StorageManager storageManager, StorageResourceRepository storageResourceRepository, AzureConfiguration azureConfiguration) {
         this.storageManager = storageManager;
         this.storageResourceRepository = storageResourceRepository;
         this.azureConfiguration = azureConfiguration;
+    }
+
+    public static Optional<String> getStorageAccountName(HasMetadata crd) {
+        return Optional.ofNullable(crd.getMetadata().getAnnotations().get(ANNOTATION_STORAGE_ACCOUNT_NAME));
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd) {
@@ -40,45 +51,50 @@ public class StorageAccountService {
     }
 
     public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type) {
+        return add(crd, path, type, null);
+    }
+
+    public StorageAccount add(FlaisCrd<? extends AzureSpec> crd, String path, StorageType type, Map<String, String> tags) {
 
         String accountName = generateStorageAccountName();
-        log.info("Creating storage account with name: {}", accountName);
-        StorageAccount storageAccount = storageManager.storageAccounts()
+        log.debug("Creating storage account with name: {}", accountName);
+
+        var allTags = new HashMap<>(Map.of(
+                TAG_ORG_ID, getOrgId(crd).orElse("N/A"),
+                TAG_TEAM, getTeam(crd).orElse("N/A"),
+                TAG_TYPE, type.name(),
+                TAG_INSTANCE, Optional.ofNullable(crd.getMetadata().getLabels().get("app.kubernetes.io/instance")).orElse("N/A"),
+                TAG_PART_OF, Optional.ofNullable(crd.getMetadata().getLabels().get("app.kubernetes.io/part-of")).orElse("N/A"),
+                TAG_CRD_NAME, crd.getMetadata().getName(),
+                TAG_CRD_NAMESPACE, crd.getMetadata().getNamespace(),
+                TAG_ENVIRONMENT, Optional.ofNullable(Props.getEnvironment()).orElse("N/A")
+        ));
+        if (tags != null) {
+            allTags.putAll(tags);
+        }
+
+        var storageAccount = storageManager.storageAccounts()
                 .define(accountName)
                 .withRegion(Region.NORWAY_EAST)
                 .withExistingResourceGroup(azureConfiguration.getStorageAccountResourceGroup())
                 .withGeneralPurposeAccountKindV2()
                 .withSku(StorageAccountSkuType.STANDARD_LRS)
-                //.withAccessFromAzureServices()
                 .disableBlobPublicAccess()
-                .withTag(TAG_ORG_ID, getOrgId(crd).orElse("N/A"))
-                .withTag(TAG_TEAM, getTeam(crd).orElse("N/A"))
-                .withTag(TAG_TYPE, type.name())
-                .withTag(TAG_INSTANCE, crd.getMetadata().getLabels().get("app.kubernetes.io/instance"))
-                .withTag(TAG_PART_OF, crd.getMetadata().getLabels().get("app.kubernetes.io/part-of"))
-                .withTag(TAG_CRD_NAME, crd.getMetadata().getName())
-                .withTag(TAG_CRD_NAMESPACE, crd.getMetadata().getNamespace())
-                .withTag(TAG_ENVIRONMENT, Props.getEnvironment())
+                .withTags(allTags)
                 .create();
 
         if (!storageAccount.name().equals(accountName)) {
             throw new IllegalStateException("Name of StorageAccount doesn't match accountName (storageAccount: " + storageAccount.name() + ", accountName: " + accountName + ")");
         }
 
-        storageResourceRepository.add(StorageResource.of(storageAccount, path, type));
+        storageResourceRepository.add(StorageResource.of(storageAccount, path, type, tags));
 
         if (!storageResourceRepository.exists(accountName)) {
             throw new IllegalStateException("Account name:" + accountName + " does not exist in storageResourceRepository");
         }
 
-        crd.getMetadata().getAnnotations().put(ANNOTATION_STORAGE_ACCOUNT_NAME, accountName);
-
-        if (!getStorageAccountName(crd).orElseThrow().equals(accountName)) {
-            throw new IllegalStateException("CRD name: " + getStorageAccountName(crd) +" is not matching accountName: " + accountName);
-        }
-
-        log.info("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
-        log.info("We got {} storage accounts in {} after adding a new one", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
+        log.debug("Storage account status: {}", storageAccount.accountStatuses().primary().toString());
+        log.debug("We got {} storage accounts after adding a new one", storageResourceRepository.size());
 
         return storageAccount;
     }
