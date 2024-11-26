@@ -104,10 +104,10 @@ public class StorageAccountService {
         storageManager
                 .storageAccounts()
                 .deleteByResourceGroup(storageResource.getResourceGroup(), storageResource.getStorageAccountName());
-        log.debug("We got {} storage accounts in {} before removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
+        log.debug("We got {} storage accounts in {} before removing", storageResourceRepository.size(), Props.getEnvironment());
         storageResourceRepository.remove(storageResource);
         log.info("Storage account {} removed!", storageResource.getStorageAccountName());
-        log.info("We got {} storage accounts in {} after removing", storageResourceRepository.size(Props.getEnvironment()), Props.getEnvironment());
+        log.info("We got {} storage accounts in {} after removing", storageResourceRepository.size(), Props.getEnvironment());
     }
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {

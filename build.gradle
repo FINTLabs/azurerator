@@ -60,7 +60,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:5.2.0'
 }
 
-tasks.named('test') {
+tasks.withType(Test) {
     useJUnitPlatform()
 
     testLogging {
