@@ -100,14 +100,14 @@ public class StorageAccountService {
     }
 
     public void delete(StorageResource storageResource) {
-        log.debug("Removing storage account {}", storageResource.getStorageAccountName());
+        log.info("Removing storage account {}", storageResource.getStorageAccountName());
         storageManager
                 .storageAccounts()
                 .deleteByResourceGroup(storageResource.getResourceGroup(), storageResource.getStorageAccountName());
-        log.debug("We got {} storage accounts before removing", storageResourceRepository.size());
+        log.debug("We got {} storage accounts in {} before removing", storageResourceRepository.size(), Props.getEnvironment());
         storageResourceRepository.remove(storageResource);
-        log.debug("Storage account {} removed!", storageResource.getStorageAccountName());
-        log.debug("We got {} storage accounts after removing", storageResourceRepository.size());
+        log.info("Storage account {} removed!", storageResource.getStorageAccountName());
+        log.info("We got {} storage accounts in {} after removing", storageResourceRepository.size(), Props.getEnvironment());
     }
 
     public Optional<StorageAccount> getStorageAccount(FlaisCrd<? extends AzureSpec> primaryResource) {
@@ -125,7 +125,7 @@ public class StorageAccountService {
         }
 
         if (storageResourceRepository.exists(storageAccountName.get())) {
-            log.debug("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
+            log.info("Fetching Azure Storage Account {} ...", getStorageAccountName(primaryResource).orElse("N/A"));
             return Optional.of(storageManager
                     .storageAccounts()
                     .getByResourceGroup(azureConfiguration.getStorageAccountResourceGroup(),

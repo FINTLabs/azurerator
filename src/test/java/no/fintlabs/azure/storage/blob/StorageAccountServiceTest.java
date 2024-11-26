@@ -17,6 +17,7 @@ import no.fintlabs.azure.storage.StorageResourceRepository;
 import no.fintlabs.azure.storage.StorageType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -63,6 +64,7 @@ public class StorageAccountServiceTest {
     @Mock
     private StorageAccount storageAccount;
 
+    @ResourceLock("Props")
     @Test
     public void testAdd() {
         var crd = createStorageContainerCrd();
@@ -122,6 +124,8 @@ public class StorageAccountServiceTest {
         assertEquals("test-path", storageResource.getPath());
         assertEquals("test-environment", storageResource.getEnvironment());
         assertEquals("test-value", storageResource.getAdditionalTags().get("test-key"));
+
+        props.close();
     }
 
     @Test
