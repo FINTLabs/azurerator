@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Map;
+
 import static no.fintlabs.azure.Constants.DEFAULT_LIFESPAN_DAYS;
 import static no.fintlabs.azure.TagNames.*;
 
@@ -31,7 +33,7 @@ public class StorageResource {
     private String crdNamespace;
     private String instance;
     private String partOf;
-    private Long lifespanDays;
+    private Map<String, String> additionalTags;
 
 
     public static StorageResource desired() {
@@ -42,15 +44,15 @@ public class StorageResource {
 
     public static StorageResource of(StorageAccount storageAccount) {
         StorageType storageType = StorageType.valueOf(storageAccount.tags().getOrDefault(TAG_TYPE, StorageType.UNKNOWN.name()));
-        long lifespanDays = Long.parseLong(storageAccount.tags().getOrDefault(TAG_LIFESPAN_DAYS, DEFAULT_LIFESPAN_DAYS.toString()));
         return of(storageAccount,
                 PathFactory.getPathFromStorageAccount(storageAccount, storageType),
-                storageType,
-                lifespanDays
-                );
+                storageType, null);
+    }
+    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type) {
+        return of(storageAccount, path, type, null);
     }
 
-    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type, long lifespanDays) {
+    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type, Map<String, String> tags) {
 
         return StorageResource.builder()
                 .storageAccountName(storageAccount.name())
@@ -67,7 +69,7 @@ public class StorageResource {
                 .environment(storageAccount.tags().getOrDefault(TAG_ENVIRONMENT, TAG_DEFAULT_VALUE))
                 .path(path)
                 .type(type)
-                .lifespanDays(lifespanDays)
+                .additionalTags(tags)
                 .build();
     }
 
@@ -100,7 +102,6 @@ public class StorageResource {
                 ", crdNamespace='" + crdNamespace + '\'' +
                 ", instance='" + instance + '\'' +
                 ", partOf='" + partOf + '\'' +
-                ", lifespanDays='" + lifespanDays + '\'' +
                 '}';
     }
 }

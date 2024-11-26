@@ -7,8 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.azure.storage.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
+
+import static no.fintlabs.azure.TagNames.TAG_LIFESPAN_DAYS;
 
 @Slf4j
 @Service
@@ -24,8 +25,10 @@ public class BlobContainerService {
 
 
     public StorageResource add(StorageResource desired, BlobContainerCrd crd) {
+        var lifespanDays = crd.getSpec().getLifespanDays();
+        var tags = lifespanDays != null ? Map.of(TAG_LIFESPAN_DAYS, String.valueOf(lifespanDays)) : null;
 
-        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.BLOB_CONTAINER, desired.getLifespanDays());
+        StorageAccount storageAccount = storageAccountService.add(crd, desired.getPath(), StorageType.BLOB_CONTAINER, tags);
 
         log.debug("Creating blob container...");
         BlobContainer container = storageAccount
@@ -38,11 +41,10 @@ public class BlobContainerService {
 
         log.debug("Blob container created: {}", container.name());
 
-        long lifespanDays = desired.getLifespanDays();
+        if (lifespanDays != null)
+            setLifecycleRules(storageAccount, storageAccount.resourceGroupName(), storageAccount.name(), desired.getPath(), lifespanDays);
 
-        setLifecycleRules(storageAccount.manager(), storageAccount.resourceGroupName(), storageAccount.name(), desired.getPath(), lifespanDays);
-
-        return StorageResource.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER, lifespanDays);
+        return StorageResource.of(storageAccount, desired.getPath(), StorageType.BLOB_CONTAINER, tags);
     }
 
     public Set<StorageResource> get(BlobContainerCrd crd) {
@@ -72,26 +74,25 @@ public class BlobContainerService {
         storageAccountService.delete(blobContainer);
     }
 
-    void setLifecycleRules(StorageManager storageManager, String resourceGroupName, String storageAccountName, String containerName, float lifespanDays) {
-
+    void setLifecycleRules(StorageAccount storageAccount, String resourceGroupName, String storageAccountName, String containerName, float lifespanDays) {
         ManagementPolicyRule rule = new ManagementPolicyRule()
                 .withName("DeleteOldBlobs")
                 .withEnabled(true)
                 .withDefinition(new ManagementPolicyDefinition()
                         .withFilters(new ManagementPolicyFilter()
-                                .withPrefixMatch(Collections.singletonList(containerName))
-                                .withBlobTypes(Collections.singletonList("blockBlob")))
+                                .withPrefixMatch(List.of(containerName + "/"))
+                                .withBlobTypes(List.of("blockBlob")))
                         .withActions(new ManagementPolicyAction()
                                 .withBaseBlob(new ManagementPolicyBaseBlob()
                                         .withDelete(new DateAfterModification().withDaysAfterModificationGreaterThan(lifespanDays)))));
 
         ManagementPolicySchema policySchema = new ManagementPolicySchema()
-                .withRules(Collections.singletonList(rule));
+                .withRules(List.of(rule));
 
         ManagementPolicyInner managementPolicyInner = new ManagementPolicyInner()
                 .withPolicy(policySchema);
 
-        storageManager.storageAccounts().manager().serviceClient().getManagementPolicies()
+        storageAccount.manager().serviceClient().getManagementPolicies()
                 .createOrUpdate(resourceGroupName, storageAccountName, ManagementPolicyName.DEFAULT, managementPolicyInner);
     }
 }

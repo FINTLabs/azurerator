@@ -1,29 +1,26 @@
 package no.fintlabs.azure.storage.blob;
 
-
 import com.azure.resourcemanager.storage.StorageManager;
 import com.azure.resourcemanager.storage.fluent.ManagementPoliciesClient;
-import com.azure.resourcemanager.storage.fluent.StorageManagementClient;
 import com.azure.resourcemanager.storage.fluent.models.ManagementPolicyInner;
 import com.azure.resourcemanager.storage.models.*;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import no.fintlabs.azure.storage.StorageAccountService;
 import no.fintlabs.azure.storage.StorageResource;
 import no.fintlabs.azure.storage.StorageType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Map;
-import java.util.Optional;
 
-import static no.fintlabs.azure.TagNames.TAG_CRD_NAME;
+import static no.fintlabs.MetadataUtils.LABEL_ORG_ID;
+import static no.fintlabs.MetadataUtils.LABEL_TEAM;
+import static no.fintlabs.azure.TagNames.TAG_LIFESPAN_DAYS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,205 +35,128 @@ public class BlobContainerServiceTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private StorageAccount storageAccount;
 
-    @Mock
-    private StorageAccounts storageAccounts;
-
-    @Mock
-    private StorageManagementClient storageManagementClient;
-
-    @Mock
-    private ManagementPoliciesClient managementPoliciesClient;
-
-    @Mock
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private StorageManager storageManager;
 
     @Mock
     private BlobContainer blobContainer;
 
-    private StorageResource desired = new StorageResource();
+    // Mocks for Blob Container definition stages
+    @Mock
+    private BlobContainers blobContainers;
 
-    private BlobContainerCrd crd = new BlobContainerCrd();
+    @Mock
+    private BlobContainer.DefinitionStages.Blank blobContainerBlank;
+
+    @Mock
+    private BlobContainer.DefinitionStages.WithPublicAccess blobContainerWithPublicAccess;
+
+    @Mock
+    private BlobContainer.DefinitionStages.WithCreate blobContainerWithCreate;
+
+    // Mocks for Management Policies
+    @Mock
+    private ManagementPoliciesClient managementPoliciesClient;
+
+    private BlobContainerCrd crd;
+    private StorageResource desired;
+
+    @BeforeEach
+    public void setup() {
+        // Common storage account setup
+        lenient().when(storageAccount.name()).thenReturn("test-account");
+        lenient().when(storageAccount.resourceGroupName()).thenReturn("test-rg");
+        lenient().when(storageAccount.manager()).thenReturn(storageManager);
+
+        // Storage Manager mocks
+        lenient().when(storageManager.blobContainers()).thenReturn(blobContainers);
+        lenient().when(storageManager.serviceClient().getManagementPolicies()).thenReturn(managementPoliciesClient);
+
+        // Blob Containers mock setup
+        lenient().when(blobContainers.defineContainer(anyString())).thenReturn(blobContainerBlank);
+        lenient().when(blobContainerBlank.withExistingStorageAccount(any(StorageAccount.class))).thenReturn(blobContainerWithPublicAccess);
+        lenient().when(blobContainerWithPublicAccess.withPublicAccess(any(PublicAccess.class))).thenReturn(blobContainerWithCreate);
+        lenient().when(blobContainerWithCreate.create()).thenReturn(blobContainer);
+
+        // Setup common CRD and desired resource
+        crd = createBlobContainerCrd();
+        desired = StorageResource.desired();
+    }
 
     @Test
-    public void testAdd() throws Exception {
-
-        desired = StorageResource.builder()
-                .storageAccountName("storageAccountName")
-                .resourceGroup("resourceGroup")
-                .connectionString("connectionString")
-                .status("status")
-                .team("team")
-                .orgId("orgId")
-                .portalUri("portalUri")
-                .environment("environment")
-                .path("path")
-                .type(StorageType.BLOB_CONTAINER)
-                .crdName("crdName")
-                .crdNamespace("crdNamespace")
-                .instance("instance")
-                .partOf("partOf")
-                .lifespanDays(30L)
-                .build();
-
-        crd = new BlobContainerCrd();
-        crd.setMetadata(new ObjectMeta());
-        crd.getMetadata().setName("crdName");
-        crd.getMetadata().setNamespace("crdNamespace");
-        crd.setSpec(new BlobContainerSpec());
-        crd.getSpec().setLifespanDays(30L);
-
-
-        BlobContainers blobContainers = mock(BlobContainers.class);
-        BlobContainer.DefinitionStages.Blank blank = mock(BlobContainer.DefinitionStages.Blank.class);
-        BlobContainer.DefinitionStages.WithPublicAccess withPublicAccess = mock(BlobContainer.DefinitionStages.WithPublicAccess.class);
-        BlobContainer.DefinitionStages.WithCreate withCreate = mock(BlobContainer.DefinitionStages.WithCreate.class);
-
-        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER), anyLong()))
+    public void shouldCreateStorageAccountWithContainer() {
+        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER), eq(null)))
                 .thenReturn(storageAccount);
-        when(storageAccount.manager()).thenReturn(storageManager);
-        when(storageManager.blobContainers()).thenReturn(blobContainers);
-        when(blobContainers.defineContainer(anyString())).thenReturn(blank);
-        when(blank.withExistingStorageAccount(any(StorageAccount.class))).thenReturn(withPublicAccess);
-        when(withPublicAccess.withPublicAccess(any(PublicAccess.class))).thenReturn(withCreate);
-        when(withCreate.create()).thenReturn(blobContainer);
 
-        when(storageManager.storageAccounts()).thenReturn(storageAccounts);
-        when(storageAccounts.manager()).thenReturn(storageManager);
-        when(storageManager.serviceClient()).thenReturn(storageManagementClient);
-        when(storageManagementClient.getManagementPolicies()).thenReturn(managementPoliciesClient);
+        // Call the method under test
+        StorageResource result = blobContainerService.add(desired, crd);
 
-        when(storageAccount.tags()).thenReturn(Map.ofEntries(
-                Map.entry(TAG_CRD_NAME, "crdName")
-        ));
+        // Verify the correct method was called
+        verify(blobContainerWithCreate).create();
+
+        // Assertions
+        assertNotNull(result);
+        assertEquals(StorageType.BLOB_CONTAINER, result.getType());
+        assertNotNull(result.getPath());
+    }
+
+    @Test
+    public void shouldCreateStorageAccountWithContainerAndLifecycle() {
+        crd.getSpec().setLifespanDays(30);
+
+        Map<String, String> tags = Map.of(TAG_LIFESPAN_DAYS, String.valueOf(30));
+        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER), eq(tags)))
+                .thenReturn(storageAccount);
+
+        ArgumentCaptor<ManagementPolicyInner> policyCaptor = ArgumentCaptor.forClass(ManagementPolicyInner.class);
+        when(managementPoliciesClient.createOrUpdate(eq("test-rg"), eq("test-account"), eq(ManagementPolicyName.DEFAULT), policyCaptor.capture()))
+                .thenReturn(mock(ManagementPolicyInner.class));
 
         StorageResource result = blobContainerService.add(desired, crd);
 
-        verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER), anyLong());
-        verify(storageManager).blobContainers();
-        verify(withCreate).create();
+        verify(blobContainerWithCreate).create();
+        verify(managementPoliciesClient).createOrUpdate(eq("test-rg"), eq("test-account"), eq(ManagementPolicyName.DEFAULT), any(ManagementPolicyInner.class));
 
         assertNotNull(result);
         assertEquals(StorageType.BLOB_CONTAINER, result.getType());
-        assertEquals("path", result.getPath());
-        assertEquals(desired.getLifespanDays(), result.getLifespanDays());
-        assertEquals(desired.getCrdName(), result.getCrdName());
+        assertNotNull(result.getPath());
 
-        assertEquals(desired.getLifespanDays(), crd.getSpec().getLifespanDays());
-        assertEquals(desired.getCrdName(), crd.getMetadata().getName());
+        ManagementPolicyInner capturedPolicy = policyCaptor.getValue();
+        assertNotNull(capturedPolicy);
+        ManagementPolicyRule policyRule = capturedPolicy.policy().rules().get(0);
+        assertNotNull(policyRule);
+        assertEquals("DeleteOldBlobs", policyRule.name());
+        assertTrue(policyRule.enabled());
+
+        ManagementPolicyDefinition policyDefinition = policyRule.definition();
+        assertNotNull(policyDefinition);
+        assertEquals(30, policyDefinition.actions().baseBlob().delete().daysAfterModificationGreaterThan());
+
+        ManagementPolicyFilter policyFilter = policyDefinition.filters();
+        assertNotNull(policyFilter);
+        assertEquals(result.getPath() + "/", policyFilter.prefixMatch().get(0));
+        assertEquals("blockBlob", policyFilter.blobTypes().get(0));
     }
 
     @Test
-    public void testSetLifecycleRules() {
-        // Set StorageManager
-        when(storageManager.storageAccounts()).thenReturn(storageAccounts);
-        when(storageAccounts.manager()).thenReturn(storageManager);
-        when(storageManager.serviceClient()).thenReturn(storageManagementClient);
-        when(storageManagementClient.getManagementPolicies()).thenReturn(managementPoliciesClient);
-
-        String resourceGroupName = "resourceGroupName";
-        String storageAccountName = "storageAccountName";
-        String containerName = "containerName";
-        float lifespanDays = 30f;
-        blobContainerService.setLifecycleRules(storageManager, resourceGroupName, storageAccountName, containerName, lifespanDays);
-
-        verify(managementPoliciesClient).createOrUpdate(eq(resourceGroupName), eq(storageAccountName), eq(ManagementPolicyName.DEFAULT), any(ManagementPolicyInner.class));
-
-        assertNotNull(storageManager);
-        assertNotNull(managementPoliciesClient);
-        assertEquals(managementPoliciesClient, storageManager.serviceClient().getManagementPolicies());
-        assertEquals(managementPoliciesClient, storageAccounts.manager().serviceClient().getManagementPolicies());
-        assertEquals(managementPoliciesClient, storageManager.storageAccounts().manager().serviceClient().getManagementPolicies());
-    }
-
-    @Test
-    public void TestGetIfStorageAccountIsEmpty() {
-        verify(storageAccountService, never()).getStorageAccount(any(BlobContainerCrd.class));
-    }
-
-    @Test
-    public void TestGetIfStorageAccountIsNotEmpty() {
-        desired = StorageResource.builder()
-                .storageAccountName("storageAccountName")
-                .resourceGroup("resourceGroup")
-                .connectionString("connectionString")
-                .status("status")
-                .team("team")
-                .orgId("orgId")
-                .portalUri("portalUri")
-                .environment("environment")
-                .path("path")
-                .type(StorageType.BLOB_CONTAINER)
-                .crdName("crdName")
-                .crdNamespace("crdNamespace")
-                .instance("instance")
-                .partOf("partOf")
-                .lifespanDays(30L)
-                .build();
-
-        crd = new BlobContainerCrd();
-        crd.setMetadata(new ObjectMeta());
-        crd.getMetadata().setName("crdName");
-        crd.getMetadata().setNamespace("crdNamespace");
-
-        BlobContainers blobContainers = mock(BlobContainers.class);
-        BlobContainer.DefinitionStages.Blank blank = mock(BlobContainer.DefinitionStages.Blank.class);
-        BlobContainer.DefinitionStages.WithPublicAccess withPublicAccess = mock(BlobContainer.DefinitionStages.WithPublicAccess.class);
-        BlobContainer.DefinitionStages.WithCreate withCreate = mock(BlobContainer.DefinitionStages.WithCreate.class);
-
-        when(storageAccountService.add(any(BlobContainerCrd.class), anyString(), eq(StorageType.BLOB_CONTAINER),anyLong()))
-                .thenReturn(storageAccount);
-        when(storageAccount.manager()).thenReturn(storageManager);
-        when(storageManager.blobContainers()).thenReturn(blobContainers);
-        when(blobContainers.defineContainer(anyString())).thenReturn(blank);
-        when(blank.withExistingStorageAccount(any(StorageAccount.class))).thenReturn(withPublicAccess);
-        when(withPublicAccess.withPublicAccess(any(PublicAccess.class))).thenReturn(withCreate);
-        when(withCreate.create()).thenReturn(blobContainer);
-
-        when(storageManager.storageAccounts()).thenReturn(storageAccounts);
-        when(storageAccounts.manager()).thenReturn(storageManager);
-        when(storageManager.serviceClient()).thenReturn(storageManagementClient);
-        when(storageManagementClient.getManagementPolicies()).thenReturn(managementPoliciesClient);
-
-        StorageResource result = blobContainerService.add(desired, crd);
-
-        verify(storageAccountService).add(any(BlobContainerCrd.class), eq("path"), eq(StorageType.BLOB_CONTAINER), anyLong());
-        verify(storageManager).blobContainers();
-        verify(withCreate).create();
-
-        assertNotNull(result);
-
-        when(storageAccountService.getStorageAccount(crd)).thenReturn(Optional.of(storageAccount));
-        Optional<StorageAccount> result2 = storageAccountService.getStorageAccount(crd);
-
-        assertNotNull(result2);
-        assertTrue(result2.isPresent());
-        assertEquals(storageAccount, result2.get());
-    }
-
-    @Test
-    public void testDelete() throws IllegalAccessException, NoSuchFieldException {
-        StorageResource desired = StorageResource.builder()
-                .storageAccountName("storageAccountName")
-                .resourceGroup("resourceGroup")
-                .connectionString("connectionString")
-                .status("status")
-                .team("team")
-                .orgId("orgId")
-                .portalUri("portalUri")
-                .environment("environment")
-                .path("path")
-                .type(StorageType.BLOB_CONTAINER)
-                .crdName("crdName")
-                .crdNamespace("crdNamespace")
-                .instance("instance")
-                .partOf("partOf")
-                .lifespanDays(30L)
-                .build();
-
-        assertNotNull(blobContainerService, "blobContainerService is null");
-        assertNotNull(storageAccountService, "storageAccountService is null");
-
+    public void testDelete() {
         blobContainerService.delete(desired);
         verify(storageAccountService).delete(desired);
+    }
+
+    // Helper method to set up common mocked objects
+    private BlobContainerCrd createBlobContainerCrd() {
+        BlobContainerCrd crd = new BlobContainerCrd();
+        crd.setMetadata(
+                new ObjectMetaBuilder()
+                        .withName("test-name")
+                        .withNamespace("test-namespace")
+                        .withLabels(Map.of(
+                                LABEL_ORG_ID, "test-org",
+                                LABEL_TEAM, "test-team"
+                        ))
+                        .build());
+        crd.setSpec(new BlobContainerSpec());
+        return crd;
     }
 }

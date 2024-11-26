@@ -9,5 +9,5 @@ import no.fintlabs.azure.AzureSpec;
 @Getter
 public class BlobContainerSpec implements AzureSpec {
 
-    private Long lifespanDays;
+    private Integer lifespanDays;
 }
