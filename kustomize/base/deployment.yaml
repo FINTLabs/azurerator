@@ -4,6 +4,10 @@ metadata:
   name: azurerator
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: azurerator
+      app.kubernetes.io/instance: flais-azurerator
   template:
     metadata:
       annotations:

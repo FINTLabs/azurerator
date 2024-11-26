@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Map;
+
+import static no.fintlabs.azure.Constants.DEFAULT_LIFESPAN_DAYS;
 import static no.fintlabs.azure.TagNames.*;
 
 @Getter
@@ -30,6 +33,7 @@ public class StorageResource {
     private String crdNamespace;
     private String instance;
     private String partOf;
+    private Map<String, String> additionalTags;
 
 
     public static StorageResource desired() {
@@ -42,10 +46,13 @@ public class StorageResource {
         StorageType storageType = StorageType.valueOf(storageAccount.tags().getOrDefault(TAG_TYPE, StorageType.UNKNOWN.name()));
         return of(storageAccount,
                 PathFactory.getPathFromStorageAccount(storageAccount, storageType),
-                storageType);
+                storageType, null);
+    }
+    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type) {
+        return of(storageAccount, path, type, null);
     }
 
-    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type) {
+    public static StorageResource of(StorageAccount storageAccount, String path, StorageType type, Map<String, String> tags) {
 
         return StorageResource.builder()
                 .storageAccountName(storageAccount.name())
@@ -62,6 +69,7 @@ public class StorageResource {
                 .environment(storageAccount.tags().getOrDefault(TAG_ENVIRONMENT, TAG_DEFAULT_VALUE))
                 .path(path)
                 .type(type)
+                .additionalTags(tags)
                 .build();
     }
 

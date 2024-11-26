@@ -63,11 +63,7 @@ public class FileShareService {
             log.debug("Storage account for {} is ready", crd.getMetadata().getName());
 
             StorageResource storageResource =
-                    StorageResource.of(
-                            storageAccount,
-                            getPathFromStorageAccount(storageAccount, StorageType.FILE_SHARE),
-                            StorageType.FILE_SHARE
-                    );
+                    StorageResource.of(storageAccount);
 
             storageResourceRepository.update(storageResource);
             return Collections.singleton(storageResource);
